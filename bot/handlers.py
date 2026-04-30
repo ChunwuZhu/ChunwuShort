@@ -20,31 +20,46 @@ class ShortBot:
     def format_message(self, df, is_scheduled=False):
         if df is None or df.empty:
             return "❌ 抓取失败，请检查账号状态或稍后再试。"
-        
+
         prefix = "📢 **[定时推送]** " if is_scheduled else "🔥 "
         msg = f"{prefix}**Fintel 做空挤压榜 Top 30**\n"
         msg += f"📅 {datetime.now(self.tz).strftime('%Y-%m-%d %H:%M')} CT\n\n"
-        
-        # 表头
-        msg += "`顺序 | 股票   | 评分  | 费率` \n"
-        msg += "───|──────|──────|─────\n"
-        
+
+        # 表头 - 使用等宽字体
+        msg += "`顺序 | 股票   | 评分  | 费率  `\n"
+        msg += "`───|────────|──────|──────`\n"
+
         for _, row in df.iterrows():
-            rank = str(row.get('Rank', '?')).ljust(2)
+            # 序号：固定2位
+            rank = f"{int(row.get('Rank', 0)):02d}"
+
             full_security = str(row.get('Security', 'Unknown'))
             ticker = full_security.split(' / ')[0].strip().upper()
-            
-            score = str(row.get('Short Squeeze Score', 'N/A')).ljust(5)
-            fee = str(row.get('Borrow Fee Rate', 'N/A'))
-            
-            yahoo_link = f"https://finance.yahoo.com/quote/{ticker}"
-            
-            # 使用 MarkdownV2 的等宽字体组合链接（注意：Telegram 部分客户端在 code 块内不支持链接，
-            # 所以我们用等宽字符模拟对齐，链接单独处理）
-            msg += f"`{rank} | `[{ticker.ljust(6)}]({yahoo_link})` | {score} | {fee}%` \n"
-            
-        msg += "\n💡 点击代码查看雅虎财经详情"
+
+            # 评分与费率：强制保留一位小数，并设定固定宽度
+            try:
+                score_val = float(row.get('Short Squeeze Score', 0))
+                score = f"{score_val:>5.1f}"
+            except:
+                score = "  N/A"
+
+            try:
+                fee_val = float(row.get('Borrow Fee Rate', 0))
+                fee = f"{fee_val:>5.1f}%"
+            except:
+                fee = "  N/A"
+
+            # 使用 Google Finance (更简洁)
+            google_link = f"https://www.google.com/finance/quote/{ticker}:NASDAQ"
+
+            # 组合行：为了保持链接可用且整体对齐
+            # 注意：Ticker 部分为了支持点击，不能放在 ` ` 块内（部分客户端限制）
+            # 我们通过精确的空格控制来实现对齐
+            msg += f"`{rank} | `[{ticker.ljust(6)}]({google_link})` | {score} | {fee}`\n"
+
+        msg += "\n💡 点击代码查看 Google Finance 详情"
         return msg
+
 
     async def send_scheduled_report(self):
         """定时任务：执行抓取并发送至目标群组"""
