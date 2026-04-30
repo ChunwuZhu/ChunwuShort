@@ -7,7 +7,8 @@ class Config:
     # Telegram
     API_ID = int(os.getenv('TELEGRAM_API_ID'))
     API_HASH = os.getenv('TELEGRAM_API_HASH')
-    SESSION_NAME = 'chunwu_short'
+    TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
+    SESSION_NAME = 'chunwu_short_bot'
     TARGET_GROUP_ID = int(os.getenv('TARGET_GROUP_ID', 0))
     
     # Fintel
