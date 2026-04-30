@@ -26,28 +26,24 @@ class ShortBot:
             return "❌ 抓取失败，请检查账号状态或稍后再试。"
 
         # 1. 数据预处理
-        # 确保数值列正确转换
         score_col = 'Short Squeeze Score'
-        fee_col = 'Borrow Fee Rate'
-        # 处理带有特殊字符的列名
+        float_col = 'Short Float'  # 替换费率为做空占比
         change_col = [c for c in df.columns if 'SI Change' in c][0]
 
         df[score_col] = pd.to_numeric(df[score_col], errors='coerce').fillna(0)
-        df[fee_col] = pd.to_numeric(df[fee_col], errors='coerce').fillna(0)
+        df[float_col] = pd.to_numeric(df[float_col], errors='coerce').fillna(0)
         df[change_col] = pd.to_numeric(df[change_col], errors='coerce').fillna(0)
 
         # 2. 排序逻辑
         if mode == 'top':
             title = "Fintel 做空挤压榜 Top 30"
             metric_label = "评分"
-            # 默认就是按 Score 排序，确保万一重新排一次
             df_sorted = df.sort_values(by=score_col, ascending=False).head(30)
             display_col = score_col
             unit = ""
         else:
             title = "做空增幅榜 (SI Change) Top 30"
             metric_label = "变化"
-            # 按变化率倒序
             df_sorted = df.sort_values(by=change_col, ascending=False).head(30)
             display_col = change_col
             unit = "%"
@@ -57,8 +53,8 @@ class ShortBot:
         msg += f"📅 {datetime.now(self.tz).strftime('%Y-%m-%d %H:%M')} CT\n\n"
 
         # 表头
-        msg += f"`顺序 | 股票   | {metric_label.ljust(4)} | 费率  `\n"
-        msg += "`───|────────|──────|──────`\n"
+        msg += f"`顺序 | 股票   | {metric_label.ljust(4)} | 做空  ` \n"
+        msg += "`───|────────|──────|──────` \n"
 
         for i, (_, row) in enumerate(df_sorted.iterrows(), 1):
             rank = f"{i:02d}"
@@ -66,14 +62,14 @@ class ShortBot:
             ticker = full_security.split(' / ')[0].strip().upper()
             
             val = f"{float(row[display_col]):>5.1f}{unit}"
-            fee = f"{float(row[fee_col]):>5.1f}%"
+            short_float = f"{float(row[float_col]):>5.1f}%"
             
-            # TradingView 链接
-            tv_link = f"https://www.tradingview.com/chart/?symbol={ticker}"
+            # Google Finance 链接
+            google_link = f"https://www.google.com/finance/quote/{ticker}:NASDAQ"
             
-            msg += f"`{rank} | `[{ticker.ljust(6)}]({tv_link})` | {val.ljust(4)} | {fee}`\n"
+            msg += f"`{rank} | `[{ticker.ljust(6)}]({google_link})` | {val.ljust(4)} | {short_float}` \n"
             
-        msg += "\n💡 点击代码查看 TradingView K线"
+        msg += "\n💡 点击代码查看 Google Finance 详情"
         return msg
 
     async def send_scheduled_report(self):
