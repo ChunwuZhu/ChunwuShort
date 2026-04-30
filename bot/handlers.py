@@ -142,6 +142,14 @@ class ShortBot:
 
         @self.client.on(events.NewMessage(pattern=r'(?i)/start'))
         async def handle_start(event):
-            await event.respond("你好！我是 ShortChunwuBot。\n/top - 挤压榜单\n/change - 增幅榜单\n/topg - Gamma榜单\n/changeg - Gamma增幅")
+            await event.respond("你好！我是 ShortChunwuBot。\n/top - 挤压榜单\n/change - 增幅榜单\n/topg - Gamma榜单\n/changeg - Gamma增幅\n?代码 - 快速获取谷歌财经链接 (如 ?TSLA)")
+
+        # 4. 快速个股链接指令 (例如 ?TSLA)
+        @self.client.on(events.NewMessage(pattern=r'^\?(\w+)'))
+        async def handle_quick_link(event):
+            ticker = event.pattern_match.group(1).upper()
+            google_link = f"https://www.google.com/finance/quote/{ticker}:NASDAQ"
+            message = f"🔍 **[{ticker}]({google_link})**"
+            await event.respond(message, link_preview=False)
 
         await self.client.run_until_disconnected()

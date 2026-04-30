@@ -152,3 +152,14 @@
 2026-04-29 23:50:38,535 - apscheduler.scheduler - INFO - Added job "ShortBot.send_scheduled_report" to job store "default"
 2026-04-29 23:50:38,535 - apscheduler.scheduler - INFO - Added job "ShortBot.send_scheduled_report" to job store "default"
 2026-04-29 23:50:38,535 - apscheduler.scheduler - INFO - Scheduler started
+2026-04-29 23:57:12,625 - Main - INFO - 系统正在初始化服务...
+2026-04-29 23:57:12,639 - bot.handlers - INFO - 正在以 Bot 模式启动...
+2026-04-29 23:57:12,639 - telethon.network.mtprotosender - INFO - Connecting to 149.154.175.57:443/TcpFull...
+2026-04-29 23:57:12,707 - telethon.network.mtprotosender - INFO - Connection to 149.154.175.57:443/TcpFull complete!
+2026-04-29 23:57:13,133 - bot.handlers - INFO - 🤖 ShortChunwuBot 已在线
+2026-04-29 23:57:13,140 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-04-29 23:57:13,140 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-04-29 23:57:13,142 - apscheduler.scheduler - INFO - Added job "ShortBot.send_scheduled_report" to job store "default"
+2026-04-29 23:57:13,142 - apscheduler.scheduler - INFO - Added job "ShortBot.send_scheduled_report" to job store "default"
+2026-04-29 23:57:13,142 - apscheduler.scheduler - INFO - Scheduler started
+2026-04-29 23:58:30,094 - undetected_chromedriver.patcher - INFO - patching driver executable /Users/chunwu/Library/Application Support/undetected_chromedriver/undetected_chromedriver
