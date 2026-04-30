@@ -28,10 +28,18 @@ class ShortBot:
         
         for _, row in df.iterrows():
             rank = row.get('Rank', '?')
-            security = str(row.get('Security', 'Unknown')).split(' / ')[0][:20]
+            full_security = str(row.get('Security', 'Unknown'))
+            # 提取 Ticker (例如 "BBGI / Beasley..." -> "BBGI")
+            ticker = full_security.split(' / ')[0].strip().upper()
+            # 缩短显示名称
+            display_name = full_security.split(' / ')[0][:20]
+            
             score = row.get('Short Squeeze Score', 'N/A')
             fee = row.get('Borrow Fee Rate', 'N/A')
-            msg += f"**{rank}. {security}** (评分: `{score}` | 费率: `{fee}%`)\n"
+            
+            # 生成雅虎财经链接
+            yahoo_link = f"https://finance.yahoo.com/quote/{ticker}"
+            msg += f"**{rank}. [{ticker}]({yahoo_link})** (评分: `{score}` | 费率: `{fee}%`)\n"
             
         msg += "━━━━━━━━━━━━━━━━━━━━\n"
         msg += "💡 使用 `/top` 获取最新实时榜单"

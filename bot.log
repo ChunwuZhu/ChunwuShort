@@ -8,3 +8,61 @@
 2026-04-29 21:48:33,968 - apscheduler.scheduler - INFO - Added job "ShortBot.send_scheduled_report" to job store "default"
 2026-04-29 21:48:33,969 - apscheduler.scheduler - INFO - Scheduler started
 2026-04-29 21:48:33,969 - bot.handlers - INFO - ⏰ 定时任务已就绪 (8:15 AM & 3:15 PM CT)
+2026-04-29 22:12:17,227 - Main - INFO - 系统正在初始化服务...
+2026-04-29 22:12:17,243 - bot.handlers - INFO - 正在以 Bot 模式启动...
+2026-04-29 22:12:17,243 - telethon.network.mtprotosender - INFO - Connecting to 149.154.167.51:443/TcpFull...
+2026-04-29 22:12:19,225 - telethon.network.mtprotosender - INFO - Connection to 149.154.167.51:443/TcpFull complete!
+2026-04-29 22:12:20,121 - telethon.client.users - INFO - Phone migrated to 1
+2026-04-29 22:12:20,122 - telethon.client.telegrambaseclient - INFO - Reconnecting to new data center 1
+2026-04-29 22:12:20,282 - telethon.network.mtprotosender - INFO - Disconnecting from 149.154.167.51:443/TcpFull...
+2026-04-29 22:12:20,283 - telethon.network.mtprotosender - INFO - Disconnection from 149.154.167.51:443/TcpFull complete!
+2026-04-29 22:12:20,284 - telethon.network.mtprotosender - INFO - Connecting to 149.154.175.57:443/TcpFull...
+2026-04-29 22:12:21,749 - telethon.network.mtprotosender - INFO - Connection to 149.154.175.57:443/TcpFull complete!
+2026-04-29 22:12:22,183 - bot.handlers - INFO - 🤖 ShortChunwuBot 已在线
+2026-04-29 22:12:22,189 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-04-29 22:12:22,190 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-04-29 22:12:22,191 - apscheduler.scheduler - INFO - Added job "ShortBot.send_scheduled_report" to job store "default"
+2026-04-29 22:12:22,191 - apscheduler.scheduler - INFO - Added job "ShortBot.send_scheduled_report" to job store "default"
+2026-04-29 22:12:22,191 - apscheduler.scheduler - INFO - Scheduler started
+2026-04-29 22:12:22,191 - bot.handlers - INFO - ⏰ 定时推送已就绪 (8:15 AM & 3:15 PM CT)
+2026-04-29 22:22:56,297 - Main - INFO - 系统正在初始化服务...
+2026-04-29 22:22:56,310 - bot.handlers - INFO - 正在以 Bot 模式启动...
+2026-04-29 22:22:56,310 - telethon.network.mtprotosender - INFO - Connecting to 149.154.175.57:443/TcpFull...
+2026-04-29 22:22:56,354 - telethon.network.mtprotosender - INFO - Connection to 149.154.175.57:443/TcpFull complete!
+2026-04-29 22:22:56,687 - bot.handlers - INFO - 🤖 ShortChunwuBot 已在线
+2026-04-29 22:22:56,692 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-04-29 22:22:56,692 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-04-29 22:22:56,693 - apscheduler.scheduler - INFO - Added job "ShortBot.send_scheduled_report" to job store "default"
+2026-04-29 22:22:56,693 - apscheduler.scheduler - INFO - Added job "ShortBot.send_scheduled_report" to job store "default"
+2026-04-29 22:22:56,693 - apscheduler.scheduler - INFO - Scheduler started
+2026-04-29 22:22:56,693 - bot.handlers - INFO - ⏰ 定时推送已就绪 (8:15 AM & 3:15 PM CT)
+2026-04-29 22:34:57,339 - Main - INFO - 系统正在初始化服务...
+2026-04-29 22:34:57,354 - bot.handlers - INFO - 正在以 Bot 模式启动...
+2026-04-29 22:34:57,354 - telethon.network.mtprotosender - INFO - Connecting to 149.154.167.51:443/TcpFull...
+2026-04-29 22:34:58,959 - telethon.network.mtprotosender - INFO - Connection to 149.154.167.51:443/TcpFull complete!
+2026-04-29 22:34:59,769 - telethon.client.users - INFO - Phone migrated to 1
+2026-04-29 22:34:59,770 - telethon.client.telegrambaseclient - INFO - Reconnecting to new data center 1
+2026-04-29 22:34:59,906 - telethon.network.mtprotosender - INFO - Disconnecting from 149.154.167.51:443/TcpFull...
+2026-04-29 22:34:59,907 - telethon.network.mtprotosender - INFO - Disconnection from 149.154.167.51:443/TcpFull complete!
+2026-04-29 22:34:59,907 - telethon.network.mtprotosender - INFO - Connecting to 149.154.175.57:443/TcpFull...
+2026-04-29 22:35:01,164 - telethon.network.mtprotosender - INFO - Connection to 149.154.175.57:443/TcpFull complete!
+2026-04-29 22:35:01,491 - bot.handlers - INFO - 🤖 ShortChunwuBot 已在线
+2026-04-29 22:35:01,500 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-04-29 22:35:01,500 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-04-29 22:35:01,501 - apscheduler.scheduler - INFO - Added job "ShortBot.send_scheduled_report" to job store "default"
+2026-04-29 22:35:01,502 - apscheduler.scheduler - INFO - Added job "ShortBot.send_scheduled_report" to job store "default"
+2026-04-29 22:35:01,502 - apscheduler.scheduler - INFO - Scheduler started
+2026-04-29 22:35:01,502 - bot.handlers - INFO - ⏰ 定时推送已就绪 (8:15 AM & 3:15 PM CT)
+2026-04-29 22:35:32,688 - Main - INFO - 系统正在初始化服务...
+2026-04-29 22:35:32,701 - bot.handlers - INFO - 正在以 Bot 模式启动...
+2026-04-29 22:35:32,701 - telethon.network.mtprotosender - INFO - Connecting to 149.154.175.57:443/TcpFull...
+2026-04-29 22:35:32,751 - telethon.network.mtprotosender - INFO - Connection to 149.154.175.57:443/TcpFull complete!
+2026-04-29 22:35:33,121 - bot.handlers - INFO - 🤖 ShortChunwuBot 已在线
+2026-04-29 22:35:33,126 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-04-29 22:35:33,127 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-04-29 22:35:33,127 - apscheduler.scheduler - INFO - Added job "ShortBot.send_scheduled_report" to job store "default"
+2026-04-29 22:35:33,127 - apscheduler.scheduler - INFO - Added job "ShortBot.send_scheduled_report" to job store "default"
+2026-04-29 22:35:33,127 - apscheduler.scheduler - INFO - Scheduler started
+2026-04-29 22:35:33,127 - bot.handlers - INFO - ⏰ 定时推送已就绪 (8:15 AM & 3:15 PM CT)
+2026-04-29 22:36:24,387 - bot.handlers - INFO - Bot 收到 /top 指令 - 来自: 8232827231
+2026-04-29 22:36:25,635 - undetected_chromedriver.patcher - INFO - patching driver executable /Users/chunwu/Library/Application Support/undetected_chromedriver/undetected_chromedriver
