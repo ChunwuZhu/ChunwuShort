@@ -29,82 +29,86 @@ class ShortBot:
         if df is None or df.empty:
             return "❌ 抓取失败，请检查账号状态或稍后再试。"
 
-        # 1. 自动识别核心列名
+        # 1. 识别核心列名
         score_col = None
-        # 尝试匹配评分列
         for c in ['Short Squeeze Score', 'Gamma Squeeze Score', 'Net Premium', 'NetPremium']:
             if c in df.columns:
                 score_col = c
                 break
-        if not score_col: score_col = df.columns[2] # 兜底取第三列
-
-        # 尝试匹配做空占比或流向列
-        float_col = None
-        for c in ['Short Float', 'Net Institutional Flow', 'Put/Call Ratio']:
-            if c in df.columns:
-                float_col = c
-                break
-        if not float_col: float_col = df.columns[-1]
+        if not score_col: score_col = df.columns[2]
 
         # 寻找变化率列
         change_cols = [c for c in df.columns if 'Change' in c]
         change_col = change_cols[0] if change_cols else score_col
 
-        # 转换数值
-        for col in [score_col, float_col, change_col]:
-            if col in df.columns:
-                df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
-
         # 2. 标题和排序逻辑
+        is_gamma = mode in ['topg', 'changeg']
         if mode == 'top':
             title, metric_label, display_col, unit = "Fintel 做空挤压榜 Top 30", "评分", score_col, ""
             df_sorted = df.sort_values(by=score_col, ascending=False).head(30)
+            sec_label = "做空"
         elif mode == 'change':
             title, metric_label, display_col, unit = "做空增幅榜 (SI Change) Top 30", "变化", change_col, "%"
             df_sorted = df.sort_values(by=change_col, ascending=False).head(30)
+            sec_label = "做空"
         elif mode == 'topg':
             title, metric_label, display_col, unit = "Gamma Squeeze 榜 Top 30", "评分", score_col, ""
             df_sorted = df.sort_values(by=score_col, ascending=False).head(30)
+            sec_label = "GEX/PCR"
         elif mode == 'changeg':
             title, metric_label, display_col, unit = "Gamma 增幅榜 Top 30", "变化", change_col, "%"
             df_sorted = df.sort_values(by=change_col, ascending=False).head(30)
+            sec_label = "GEX/PCR"
         elif mode == 'topo':
             title, metric_label, display_col, unit = "Option Flow 榜 (Net Premium) Top 30", "金额", score_col, "M"
             df_sorted = df.sort_values(by=score_col, ascending=False).head(30)
+            sec_label = "指标"
         elif mode == 'changeo':
             title, metric_label, display_col, unit = "Option Flow 增幅榜 Top 30", "变化", change_col, "%"
             df_sorted = df.sort_values(by=change_col, ascending=False).head(30)
+            sec_label = "指标"
 
         prefix = "📢 **[定时推送]** " if is_scheduled else "🔥 "
         msg = f"{prefix}**{title}**\n"
         msg += f"📅 {datetime.now(self.tz).strftime('%Y-%m-%d %H:%M')} CT\n\n"
 
         # 表头
-        msg += f"`顺序 | 股票   | {metric_label.ljust(4)} | 指标  ` \n"
-        msg += "`───|────────|──────|──────` \n"
+        msg += f"`顺序 | 股票   | {metric_label.ljust(4)} | {sec_label.ljust(6)}` \n"
+        msg += "`───|────────|──────|──────────` \n"
 
         for i, (_, row) in enumerate(df_sorted.iterrows(), 1):
             rank = f"{i:02d}"
-            full_security = str(row.get('Security', 'Unknown'))
-            ticker = full_security.split(' / ')[0].strip().upper()
+            ticker = str(row.get('Security', 'Unknown')).split(' / ')[0].strip().upper()
             
-            # 格式化主数值
-            raw_val = float(row.get(display_col, 0))
-            # 如果是 Net Premium 且很大，缩减为 M
-            if mode == 'topo' and abs(raw_val) > 1000:
-                val = f"{raw_val/1000000:>5.1f}{unit}"
+            # 主数值格式化
+            try:
+                raw_val = float(pd.to_numeric(row.get(display_col, 0), errors='coerce'))
+                if mode == 'topo' and abs(raw_val) > 1000:
+                    val_str = f"{raw_val/1000000:>5.1f}{unit}"
+                else:
+                    val_str = f"{raw_val:>5.1f}{unit}"
+            except:
+                val_str = " N/A "
+
+            # 次要指标格式化 (针对 Gamma 特殊处理)
+            if is_gamma:
+                try:
+                    gex = float(pd.to_numeric(row.get('GEX ($MM)', 0), errors='coerce'))
+                    pcr = float(pd.to_numeric(row.get('Put/Call Ratio', 0), errors='coerce'))
+                    sec_display = f"{gex:>3.0f}/{pcr:.1f}"
+                except:
+                    sec_display = " N/A "
             else:
-                val = f"{raw_val:>5.1f}{unit}"
-            
-            # 格式化次要指标
-            sec_val = row.get(float_col, 0)
-            if isinstance(sec_val, (int, float)):
-                sec_display = f"{float(sec_val):>5.1f}%" if 'Float' in str(float_col) else f"{float(sec_val):>5.1f}"
-            else:
-                sec_display = "  N/A"
+                # 原有的做空占比逻辑
+                float_col = 'Short Float' if 'Short Float' in df.columns else df.columns[-1]
+                try:
+                    s_float = float(pd.to_numeric(row.get(float_col, 0), errors='coerce'))
+                    sec_display = f"{s_float:>5.1f}%" if 'Float' in str(float_col) else f"{s_float:>5.1f}"
+                except:
+                    sec_display = " N/A "
             
             google_link = f"https://www.google.com/finance/quote/{ticker}:NASDAQ"
-            msg += f"`{rank} | `[{ticker.ljust(6)}]({google_link})` | {val.ljust(4)} | {sec_display.strip()}` \n"
+            msg += f"`{rank} | `[{ticker.ljust(6)}]({google_link})` | {val_str.ljust(4)} | {sec_display}` \n"
             
         msg += "\n💡 点击代码查看 Google Finance 详情"
         return msg
@@ -172,7 +176,6 @@ class ShortBot:
         async def handle_start(event):
             await event.respond("你好！我是 ShortChunwuBot。\n/top - 挤压榜单\n/change - 增幅榜单\n/topg - Gamma榜单\n/changeg - Gamma增幅\n?代码 - 快速获取谷歌财经链接 (如 ?TSLA)")
 
-        # 4. 快速个股链接指令 (例如 ?TSLA)
         @self.client.on(events.NewMessage(pattern=r'^\?(\w+)'))
         async def handle_quick_link(event):
             ticker = event.pattern_match.group(1).upper()
