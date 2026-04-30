@@ -73,10 +73,11 @@ class FintelScraper:
                         break
                 if df is None: df = tables[0]
                 
-                top_30 = df.head(30).copy()
-                top_30['Security'] = top_30['Security'].apply(self._clean_security_name)
-                top_30.to_csv(config.CSV_OUTPUT, index=False)
-                return top_30
+                # 返回全部数据，由机器人逻辑决定排序和切片
+                df_all = df.copy()
+                df_all['Security'] = df_all['Security'].apply(self._clean_security_name)
+                df_all.to_csv(config.CSV_OUTPUT, index=False)
+                return df_all
             return None
 
         except Exception as e:
