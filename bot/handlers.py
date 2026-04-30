@@ -173,9 +173,9 @@ class ShortBot:
 
         @self.client.on(events.NewMessage(pattern=r'(?i)/start$'))
         async def handle_start(event):
-            await event.respond("欢迎使用 ShortChunwuBot！\n输入 `/menu` 查看所有可用指令。")
+            await event.respond("欢迎使用 ShortChunwuBot！\n输入 `1` 查看所有可用指令。")
 
-        @self.client.on(events.NewMessage(pattern=r'(?i)/menu$'))
+        @self.client.on(events.NewMessage(pattern=r'^1$'))
         async def handle_menu(event):
             menu_text = (
                 "**ShortChunwuBot 🛠 菜单**\n"
