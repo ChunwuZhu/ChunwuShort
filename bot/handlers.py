@@ -171,10 +171,32 @@ class ShortBot:
             loop = asyncio.get_event_loop()
             df = await loop.run_in_executor(None, self.scraper.run, "https://fintel.io/sofStockLeaderboard")
             await event.respond(self.format_message(df, mode='changeo'))
+@self.client.on(events.NewMessage(pattern=r'(?i)/start'))
+async def handle_start(event):
+    await event.respond("欢迎使用 ShortChunwuBot！\n输入 `/menu` 查看所有可用指令。")
 
-        @self.client.on(events.NewMessage(pattern=r'(?i)/start'))
-        async def handle_start(event):
-            await event.respond("你好！我是 ShortChunwuBot。\n/top - 挤压榜单\n/change - 增幅榜单\n/topg - Gamma榜单\n/changeg - Gamma增幅\n?代码 - 快速获取谷歌财经链接 (如 ?TSLA)")
+@self.client.on(events.NewMessage(pattern=r'(?i)/menu'))
+async def handle_menu(event):
+    menu_text = (
+        "🛠 **ShortChunwuBot 菜单**\n\n"
+        "📊 **做空挤压 (Short Squeeze)**\n"
+        "  `/top` - 挤压评分榜前 30\n"
+        "  `/change` - 做空月度增幅榜前 30\n\n"
+        "📈 **期权挤压 (Gamma Squeeze)**\n"
+        "  `/topg` - Gamma 评分榜前 30\n"
+        "  `/changeg` - Gamma 增幅榜前 30\n\n"
+        "💰 **期权异动 (Option Flow)**\n"
+        "  `/topo` - 净权利金 (Net Premium) 榜\n"
+        "  `/changeo` - 期权流向增幅榜\n\n"
+        "🔍 **快捷查询**\n"
+        "  `?代码` - 极速获取 Google Finance 链接\n"
+        "  例: `?TSLA` \n\n"
+        "⏰ **定时任务**\n"
+        "  每天 08:15 & 15:15 CT 自动发送 `/top` 榜单。"
+    )
+    await event.respond(menu_text)
+
+# 4. 快速个股链接指令 (例如 ?TSLA)
 
         @self.client.on(events.NewMessage(pattern=r'^\?(\w+)'))
         async def handle_quick_link(event):
