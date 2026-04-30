@@ -2,3 +2,9 @@ telethon
 python-dotenv
 requests
 pandas
+playwright
+playwright-stealth
+undetected-chromedriver
+tabulate
+apscheduler
+pytz

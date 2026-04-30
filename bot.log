@@ -1,0 +1,10 @@
+2026-04-29 21:48:33,441 - Main - INFO - 系统正在初始化服务...
+2026-04-29 21:48:33,456 - telethon.network.mtprotosender - INFO - Connecting to 149.154.175.57:443/TcpFull...
+2026-04-29 21:48:33,520 - telethon.network.mtprotosender - INFO - Connection to 149.154.175.57:443/TcpFull complete!
+2026-04-29 21:48:33,959 - bot.handlers - INFO - 🤖 机器人已启动
+2026-04-29 21:48:33,966 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-04-29 21:48:33,967 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-04-29 21:48:33,968 - apscheduler.scheduler - INFO - Added job "ShortBot.send_scheduled_report" to job store "default"
+2026-04-29 21:48:33,968 - apscheduler.scheduler - INFO - Added job "ShortBot.send_scheduled_report" to job store "default"
+2026-04-29 21:48:33,969 - apscheduler.scheduler - INFO - Scheduler started
+2026-04-29 21:48:33,969 - bot.handlers - INFO - ⏰ 定时任务已就绪 (8:15 AM & 3:15 PM CT)
