@@ -66,3 +66,14 @@
 2026-04-29 22:35:33,127 - bot.handlers - INFO - ⏰ 定时推送已就绪 (8:15 AM & 3:15 PM CT)
 2026-04-29 22:36:24,387 - bot.handlers - INFO - Bot 收到 /top 指令 - 来自: 8232827231
 2026-04-29 22:36:25,635 - undetected_chromedriver.patcher - INFO - patching driver executable /Users/chunwu/Library/Application Support/undetected_chromedriver/undetected_chromedriver
+2026-04-29 22:40:16,620 - Main - INFO - 系统正在初始化服务...
+2026-04-29 22:40:16,632 - bot.handlers - INFO - 正在以 Bot 模式启动...
+2026-04-29 22:40:16,632 - telethon.network.mtprotosender - INFO - Connecting to 149.154.175.57:443/TcpFull...
+2026-04-29 22:40:16,696 - telethon.network.mtprotosender - INFO - Connection to 149.154.175.57:443/TcpFull complete!
+2026-04-29 22:40:17,167 - bot.handlers - INFO - 🤖 ShortChunwuBot 已在线
+2026-04-29 22:40:17,174 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-04-29 22:40:17,174 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-04-29 22:40:17,175 - apscheduler.scheduler - INFO - Added job "ShortBot.send_scheduled_report" to job store "default"
+2026-04-29 22:40:17,176 - apscheduler.scheduler - INFO - Added job "ShortBot.send_scheduled_report" to job store "default"
+2026-04-29 22:40:17,176 - apscheduler.scheduler - INFO - Scheduler started
+2026-04-29 22:40:17,176 - bot.handlers - INFO - ⏰ 定时推送已就绪 (8:15 AM & 3:15 PM CT)

@@ -22,27 +22,28 @@ class ShortBot:
             return "❌ 抓取失败，请检查账号状态或稍后再试。"
         
         prefix = "📢 **[定时推送]** " if is_scheduled else "🔥 "
-        msg = f"{prefix}**Fintel Short Squeeze 排行榜 Top 30**\n"
-        msg += f"📅 更新: {datetime.now(self.tz).strftime('%Y-%m-%d %H:%M')} CT\n"
-        msg += "━━━━━━━━━━━━━━━━━━━━\n"
+        msg = f"{prefix}**Fintel 做空挤压榜 Top 30**\n"
+        msg += f"📅 {datetime.now(self.tz).strftime('%Y-%m-%d %H:%M')} CT\n\n"
+        
+        # 表头
+        msg += "`顺序 | 股票   | 评分  | 费率` \n"
+        msg += "───|──────|──────|─────\n"
         
         for _, row in df.iterrows():
-            rank = row.get('Rank', '?')
+            rank = str(row.get('Rank', '?')).ljust(2)
             full_security = str(row.get('Security', 'Unknown'))
-            # 提取 Ticker (例如 "BBGI / Beasley..." -> "BBGI")
             ticker = full_security.split(' / ')[0].strip().upper()
-            # 缩短显示名称
-            display_name = full_security.split(' / ')[0][:20]
             
-            score = row.get('Short Squeeze Score', 'N/A')
-            fee = row.get('Borrow Fee Rate', 'N/A')
+            score = str(row.get('Short Squeeze Score', 'N/A')).ljust(5)
+            fee = str(row.get('Borrow Fee Rate', 'N/A'))
             
-            # 生成雅虎财经链接
             yahoo_link = f"https://finance.yahoo.com/quote/{ticker}"
-            msg += f"**{rank}. [{ticker}]({yahoo_link})** (评分: `{score}` | 费率: `{fee}%`)\n"
             
-        msg += "━━━━━━━━━━━━━━━━━━━━\n"
-        msg += "💡 使用 `/top` 获取最新实时榜单"
+            # 使用 MarkdownV2 的等宽字体组合链接（注意：Telegram 部分客户端在 code 块内不支持链接，
+            # 所以我们用等宽字符模拟对齐，链接单独处理）
+            msg += f"`{rank} | `[{ticker.ljust(6)}]({yahoo_link})` | {score} | {fee}%` \n"
+            
+        msg += "\n💡 点击代码查看雅虎财经详情"
         return msg
 
     async def send_scheduled_report(self):
