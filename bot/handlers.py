@@ -22,15 +22,30 @@ class ShortBot:
         mode='top': 按 Squeeze Score 排序 (Short)
         mode='change': 按 SI Change (1m %) 排序 (Short)
         mode='topg': 按 Gamma Squeeze Score 排序
-        mode='changeg': 按 Gamma 相关变化排序 (如果 Fintel 页面有的话，默认按 Score)
+        mode='changeg': 按 Gamma 变化排序
+        mode='topo': 按 Net Premium 排序 (Option Flow)
+        mode='changeo': 按 Option Flow 变化排序
         """
         if df is None or df.empty:
             return "❌ 抓取失败，请检查账号状态或稍后再试。"
 
-        # 1. 识别列名 (Fintel 不同页面的列名可能微调)
-        score_col = 'Short Squeeze Score' if 'Short Squeeze Score' in df.columns else 'Gamma Squeeze Score'
-        float_col = 'Short Float' if 'Short Float' in df.columns else 'Net Institutional Flow' # Gamma 页可能没 Short Float
-        
+        # 1. 自动识别核心列名
+        score_col = None
+        # 尝试匹配评分列
+        for c in ['Short Squeeze Score', 'Gamma Squeeze Score', 'Net Premium', 'NetPremium']:
+            if c in df.columns:
+                score_col = c
+                break
+        if not score_col: score_col = df.columns[2] # 兜底取第三列
+
+        # 尝试匹配做空占比或流向列
+        float_col = None
+        for c in ['Short Float', 'Net Institutional Flow', 'Put/Call Ratio']:
+            if c in df.columns:
+                float_col = c
+                break
+        if not float_col: float_col = df.columns[-1]
+
         # 寻找变化率列
         change_cols = [c for c in df.columns if 'Change' in c]
         change_col = change_cols[0] if change_cols else score_col
@@ -42,37 +57,30 @@ class ShortBot:
 
         # 2. 标题和排序逻辑
         if mode == 'top':
-            title = "Fintel 做空挤压榜 Top 30"
-            metric_label = "评分"
+            title, metric_label, display_col, unit = "Fintel 做空挤压榜 Top 30", "评分", score_col, ""
             df_sorted = df.sort_values(by=score_col, ascending=False).head(30)
-            display_col = score_col
-            unit = ""
         elif mode == 'change':
-            title = "做空增幅榜 (SI Change) Top 30"
-            metric_label = "变化"
+            title, metric_label, display_col, unit = "做空增幅榜 (SI Change) Top 30", "变化", change_col, "%"
             df_sorted = df.sort_values(by=change_col, ascending=False).head(30)
-            display_col = change_col
-            unit = "%"
         elif mode == 'topg':
-            title = "Gamma Squeeze 榜 Top 30"
-            metric_label = "评分"
+            title, metric_label, display_col, unit = "Gamma Squeeze 榜 Top 30", "评分", score_col, ""
             df_sorted = df.sort_values(by=score_col, ascending=False).head(30)
-            display_col = score_col
-            unit = ""
         elif mode == 'changeg':
-            title = "Gamma 增幅榜 Top 30"
-            metric_label = "变化"
-            # 如果没有变化率列，按 Score 排
+            title, metric_label, display_col, unit = "Gamma 增幅榜 Top 30", "变化", change_col, "%"
             df_sorted = df.sort_values(by=change_col, ascending=False).head(30)
-            display_col = change_col
-            unit = "%" if change_col != score_col else ""
+        elif mode == 'topo':
+            title, metric_label, display_col, unit = "Option Flow 榜 (Net Premium) Top 30", "金额", score_col, "M"
+            df_sorted = df.sort_values(by=score_col, ascending=False).head(30)
+        elif mode == 'changeo':
+            title, metric_label, display_col, unit = "Option Flow 增幅榜 Top 30", "变化", change_col, "%"
+            df_sorted = df.sort_values(by=change_col, ascending=False).head(30)
 
         prefix = "📢 **[定时推送]** " if is_scheduled else "🔥 "
         msg = f"{prefix}**{title}**\n"
         msg += f"📅 {datetime.now(self.tz).strftime('%Y-%m-%d %H:%M')} CT\n\n"
 
         # 表头
-        msg += f"`顺序 | 股票   | {metric_label.ljust(4)} | 做空  ` \n"
+        msg += f"`顺序 | 股票   | {metric_label.ljust(4)} | 指标  ` \n"
         msg += "`───|────────|──────|──────` \n"
 
         for i, (_, row) in enumerate(df_sorted.iterrows(), 1):
@@ -80,17 +88,23 @@ class ShortBot:
             full_security = str(row.get('Security', 'Unknown'))
             ticker = full_security.split(' / ')[0].strip().upper()
             
-            val = f"{float(row.get(display_col, 0)):>5.1f}{unit}"
-            
-            # 做空占比处理
-            s_float_val = row.get(float_col, 0)
-            if isinstance(s_float_val, (int, float)):
-                short_float = f"{float(s_float_val):>5.1f}%"
+            # 格式化主数值
+            raw_val = float(row.get(display_col, 0))
+            # 如果是 Net Premium 且很大，缩减为 M
+            if mode == 'topo' and abs(raw_val) > 1000:
+                val = f"{raw_val/1000000:>5.1f}{unit}"
             else:
-                short_float = "  N/A"
+                val = f"{raw_val:>5.1f}{unit}"
+            
+            # 格式化次要指标
+            sec_val = row.get(float_col, 0)
+            if isinstance(sec_val, (int, float)):
+                sec_display = f"{float(sec_val):>5.1f}%" if 'Float' in str(float_col) else f"{float(sec_val):>5.1f}"
+            else:
+                sec_display = "  N/A"
             
             google_link = f"https://www.google.com/finance/quote/{ticker}:NASDAQ"
-            msg += f"`{rank} | `[{ticker.ljust(6)}]({google_link})` | {val.ljust(4)} | {short_float}` \n"
+            msg += f"`{rank} | `[{ticker.ljust(6)}]({google_link})` | {val.ljust(4)} | {sec_display.strip()}` \n"
             
         msg += "\n💡 点击代码查看 Google Finance 详情"
         return msg
@@ -139,6 +153,20 @@ class ShortBot:
             loop = asyncio.get_event_loop()
             df = await loop.run_in_executor(None, self.scraper.run, "https://fintel.io/gammaSqueeze")
             await event.respond(self.format_message(df, mode='changeg'))
+
+        @self.client.on(events.NewMessage(pattern=r'(?i)/topo$'))
+        async def handle_topo(event):
+            await event.respond("⏳ 正在拉取 Fintel Option Flow 榜单...")
+            loop = asyncio.get_event_loop()
+            df = await loop.run_in_executor(None, self.scraper.run, "https://fintel.io/sofStockLeaderboard")
+            await event.respond(self.format_message(df, mode='topo'))
+
+        @self.client.on(events.NewMessage(pattern=r'(?i)/changeo$'))
+        async def handle_changeo(event):
+            await event.respond("⏳ 正在分析 Option Flow 增幅榜单...")
+            loop = asyncio.get_event_loop()
+            df = await loop.run_in_executor(None, self.scraper.run, "https://fintel.io/sofStockLeaderboard")
+            await event.respond(self.format_message(df, mode='changeo'))
 
         @self.client.on(events.NewMessage(pattern=r'(?i)/start'))
         async def handle_start(event):
