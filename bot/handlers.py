@@ -90,7 +90,7 @@ class ShortBot:
             except:
                 val_str = " N/A "
 
-            # 次要指标格式化 (针对 Gamma 特殊处理)
+            # 次要指标格式化
             if is_gamma:
                 try:
                     gex = float(pd.to_numeric(row.get('GEX ($MM)', 0), errors='coerce'))
@@ -99,7 +99,6 @@ class ShortBot:
                 except:
                     sec_display = " N/A "
             else:
-                # 原有的做空占比逻辑
                 float_col = 'Short Float' if 'Short Float' in df.columns else df.columns[-1]
                 try:
                     s_float = float(pd.to_numeric(row.get(float_col, 0), errors='coerce'))
@@ -171,32 +170,24 @@ class ShortBot:
             loop = asyncio.get_event_loop()
             df = await loop.run_in_executor(None, self.scraper.run, "https://fintel.io/sofStockLeaderboard")
             await event.respond(self.format_message(df, mode='changeo'))
-@self.client.on(events.NewMessage(pattern=r'(?i)/start'))
-async def handle_start(event):
-    await event.respond("欢迎使用 ShortChunwuBot！\n输入 `/menu` 查看所有可用指令。")
 
-@self.client.on(events.NewMessage(pattern=r'(?i)/menu'))
-async def handle_menu(event):
-    menu_text = (
-        "🛠 **ShortChunwuBot 菜单**\n\n"
-        "📊 **做空挤压 (Short Squeeze)**\n"
-        "  `/top` - 挤压评分榜前 30\n"
-        "  `/change` - 做空月度增幅榜前 30\n\n"
-        "📈 **期权挤压 (Gamma Squeeze)**\n"
-        "  `/topg` - Gamma 评分榜前 30\n"
-        "  `/changeg` - Gamma 增幅榜前 30\n\n"
-        "💰 **期权异动 (Option Flow)**\n"
-        "  `/topo` - 净权利金 (Net Premium) 榜\n"
-        "  `/changeo` - 期权流向增幅榜\n\n"
-        "🔍 **快捷查询**\n"
-        "  `?代码` - 极速获取 Google Finance 链接\n"
-        "  例: `?TSLA` \n\n"
-        "⏰ **定时任务**\n"
-        "  每天 08:15 & 15:15 CT 自动发送 `/top` 榜单。"
-    )
-    await event.respond(menu_text)
+        @self.client.on(events.NewMessage(pattern=r'(?i)/start$'))
+        async def handle_start(event):
+            await event.respond("欢迎使用 ShortChunwuBot！\n输入 `/menu` 查看所有可用指令。")
 
-# 4. 快速个股链接指令 (例如 ?TSLA)
+        @self.client.on(events.NewMessage(pattern=r'(?i)/menu$'))
+        async def handle_menu(event):
+            menu_text = (
+                "**ShortChunwuBot 🛠 菜单**\n"
+                "───|────────|──────\n"
+                "📊 **Short:**  /top | /change\n"
+                "📈 **Gamma:** /topg | /changeg\n"
+                "💰 **Flow:**  /topo | /changeo\n"
+                "🔍 **Quick:** `?代码` (例: `?TSLA`)\n"
+                "───|────────|──────\n"
+                "⏰ 08:15 & 15:15 CT 自动推送"
+            )
+            await event.respond(menu_text)
 
         @self.client.on(events.NewMessage(pattern=r'^\?(\w+)'))
         async def handle_quick_link(event):
