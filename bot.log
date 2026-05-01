@@ -357,3 +357,28 @@ Traceback (most recent call last):
     result = await future
              ^^^^^^^^^^^^
 telethon.errors.rpcerrorlist.MessageTooLongError: Message was too long (caused by SendMessageRequest)
+2026-05-01 00:43:23,038 - Main - INFO - 系统正在初始化服务...
+2026-05-01 00:43:23,049 - telethon.network.mtprotosender - INFO - Connecting to 149.154.175.57:443/TcpFull...
+2026-05-01 00:43:23,096 - telethon.network.mtprotosender - INFO - Connection to 149.154.175.57:443/TcpFull complete!
+2026-05-01 00:43:23,422 - bot.handlers - INFO - 🤖 Bot 已重启
+2026-05-01 00:45:00,498 - telethon.client.updates - ERROR - Unhandled exception on handle_list
+Traceback (most recent call last):
+  File "/opt/miniconda3/lib/python3.13/site-packages/telethon/client/updates.py", line 574, in _dispatch_update
+    await callback(event)
+  File "/Users/chunwu/Desktop/ChunwuShort/bot/handlers.py", line 134, in handle_list
+    await event.respond(self.format_compact_message(df, mode=cmd))
+  File "/opt/miniconda3/lib/python3.13/site-packages/telethon/tl/custom/message.py", line 818, in respond
+    return await self._client.send_message(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        await self.get_input_chat(), *args, **kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/miniconda3/lib/python3.13/site-packages/telethon/client/messages.py", line 926, in send_message
+    result = await self(request)
+             ^^^^^^^^^^^^^^^^^^^
+  File "/opt/miniconda3/lib/python3.13/site-packages/telethon/client/users.py", line 30, in __call__
+    return await self._call(self._sender, request, ordered=ordered)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/miniconda3/lib/python3.13/site-packages/telethon/client/users.py", line 92, in _call
+    result = await future
+             ^^^^^^^^^^^^
+telethon.errors.rpcerrorlist.MessageTooLongError: Message was too long (caused by SendMessageRequest)

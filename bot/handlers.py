@@ -35,49 +35,41 @@ class ShortBot:
         finally:
             db.close()
 
-    def get_filtered_sout(self, side, contract, limit=30, offset=0):
+    def get_filtered_sout(self, side, contract, limit=30, offset=0, dtx_limit=None):
         db = SessionLocal()
         try:
-            # 改进排序逻辑：直接获取最新入库的所有匹配记录，并按入库顺序（ID）倒序排列
-            # 因为数据是增量入库的，ID 越大代表越晚抓取到的成交
             results = db.query(FintelSout).order_by(FintelSout.id.desc()).all()
-            
             data = []
             for r in results:
                 m = r.metrics
                 if str(m.get('Trade Side')).upper() == side and str(m.get('Contract')).upper() == contract:
+                    if dtx_limit:
+                        try:
+                            dtx_val = int(pd.to_numeric(m.get('DTX', 999), errors='coerce'))
+                            if dtx_val >= dtx_limit: continue
+                        except: continue
                     row = dict(m)
                     row['Security'] = r.security_name
-                    # 确保包含入库 ID 用于备用排序
-                    row['_db_id'] = r.id
                     data.append(row)
-            
             df = pd.DataFrame(data)
             if df.empty: return df
-            
-            # 再次确保按时间字段排序（如果存在）
             if 'Time' in df.columns:
                 df = df.sort_values(by=['Date', 'Time'], ascending=False)
-            
             return df.iloc[offset:offset+limit]
         finally:
             db.close()
 
     def format_compact_message(self, df, mode='top', is_scheduled=False):
         if df is None or df.empty: return "❌ 暂无数据"
-        
         is_sout = mode.startswith('sout_')
         mapping = {'sout_bc': 'BUY CALL', 'sout_bp': 'BUY PUT', 'sout_sc': 'SELL CALL', 'sout_sp': 'SELL PUT'}
         title = mapping.get(mode, "Fintel 榜单") if is_sout else "Fintel 榜单"
-        
         prefix = "📢 **[定时]** " if is_scheduled else "🔥 "
         msg = f"{prefix}**{title}** ({datetime.now(self.tz).strftime('%H:%M')} CT)\n"
-        
         lines = []
         for i, (_, row) in enumerate(df.iterrows(), 1):
             ticker = str(row.get('Security', 'Unknown')).split(' / ')[0].strip().upper()
             google_link = f"https://www.google.com/finance/quote/{ticker}:NASDAQ"
-            
             if is_sout:
                 t = str(row.get('Time', '--:--'))[:5]
                 p = row.get('Premium Paid ($)', 0)
@@ -91,7 +83,6 @@ class ShortBot:
                 score = f"{float(pd.to_numeric(row.iloc[2], errors='coerce')):.1f}"
                 extra = f"{float(pd.to_numeric(row.iloc[3], errors='coerce')):.1f}%"
                 lines.append(f"{i:02d}. **[{ticker}]({google_link})** {score} | {extra}")
-        
         return msg + "\n".join(lines)
 
     async def send_scheduled_report(self):
@@ -101,69 +92,65 @@ class ShortBot:
 
     async def start(self):
         await self.client.start(bot_token=config.TELEGRAM_BOT_TOKEN)
-        logger.info("🤖 Bot 已重启")
+        logger.info("🤖 Bot 已启动")
 
-        # 恢复清晰易读的菜单布局
         @self.client.on(events.NewMessage(pattern=r'^1$'))
         async def handle_menu(event):
             menu_text = (
-                "🛠 **ShortChunwuBot 指令菜单**\n\n"
-                "📊 **Short Squeeze (做空)**\n"
-                "  /top - 挤压评分榜\n"
-                "  /change - 月度增幅榜\n\n"
-                "📈 **Gamma Squeeze (期权)**\n"
-                "  /topg - Gamma 评分榜\n"
-                "  /changeg - Gamma 增幅榜\n\n"
-                "💰 **Option Flow (资金)**\n"
-                "  /topo - 净权利金榜\n\n"
-                "🔥 **实时异动 (Live SOUT)**\n"
-                "  /bc (B-Call) | /bp (B-Put)\n"
-                "  /sc (S-Call) | /sp (S-Put)\n\n"
-                "🔍 **快捷查询**\n"
-                "  `?代码` (例: `?TSLA`)\n\n"
+                "**ShortChunwuBot 🛠 菜单**\n"
+                "───|────────|──────\n"
+                "📊 **Short:** /top | /change\n"
+                "📈 **Gamma:** /topg | /changeg\n"
+                "💰 **Flow:**  /topo\n"
+                "🔥 **实时异动 (Live):**\n"
+                "  /bc | /bp | /sc | /sp\n"
+                "  /bc3m | /bp3m | /sc3m | /sp3m (DTX<100)\n"
+                "🔍 **Quick:** `?代码` (例: `?TSLA`)\n"
+                "───|────────|──────\n"
                 "⏰ 08:15 & 15:15 CT 自动推送"
             )
             await event.respond(menu_text)
 
-        # 榜单指令
-        @self.client.on(events.NewMessage(pattern=r'(?i)/(top|change|topg|changeg|topo)$'))
+        @self.client.on(events.NewMessage(pattern=r'(?i)/(top|change|topg|changeg|topo)'))
         async def handle_list(event):
             cmd = event.pattern_match.group(1).lower()
             model = ShortSqueeze if cmd in ['top', 'change'] else (GammaSqueeze if 'g' in cmd else OptionFlow)
             df = self.get_latest_data(model)
             await event.respond(self.format_compact_message(df, mode=cmd))
 
-        # SOUT 指令 (初始 30 条)
-        @self.client.on(events.NewMessage(pattern=r'(?i)/(bc|bp|sc|sp)$'))
+        @self.client.on(events.NewMessage(pattern=r'(?i)/(bc|bp|sc|sp)(3m)?'))
         async def handle_sout(event):
-            cmd = event.pattern_match.group(1).lower()
+            base_cmd = event.pattern_match.group(1).lower()
+            is_3m = event.pattern_match.group(2) is not None
             side_map = {'bc': ('BUY', 'CALL'), 'bp': ('BUY', 'PUT'), 'sc': ('SELL', 'CALL'), 'sp': ('SELL', 'PUT')}
-            side, contract = side_map[cmd]
-            df = self.get_filtered_sout(side, contract, limit=30, offset=0)
+            side, contract = side_map[base_cmd]
+            dtx_limit = 100 if is_3m else None
+            df = self.get_filtered_sout(side, contract, limit=30, offset=0, dtx_limit=dtx_limit)
             await event.respond(
-                self.format_compact_message(df, mode=f'sout_{cmd}'),
-                buttons=[Button.inline("更多 ⬇️", f"more_{cmd}_30".encode())]
+                self.format_compact_message(df, mode=f'sout_{base_cmd}'),
+                buttons=[Button.inline("更多 ⬇️", f"more_{base_cmd}{'3m' if is_3m else ''}_30".encode())]
             )
 
-        # 处理更多按钮
         @self.client.on(events.CallbackQuery(pattern=r'more_(\w+)_(\d+)'))
         async def handle_more(event):
-            cmd = event.pattern_match.group(1).decode()
+            cmd_raw = event.pattern_match.group(1).decode()
             offset = int(event.pattern_match.group(2).decode())
+            is_3m = '3m' in cmd_raw
+            base_cmd = cmd_raw.replace('3m', '')
             side_map = {'bc': ('BUY', 'CALL'), 'bp': ('BUY', 'PUT'), 'sc': ('SELL', 'CALL'), 'sp': ('SELL', 'PUT')}
-            side, contract = side_map[cmd]
-            df = self.get_filtered_sout(side, contract, limit=30, offset=offset)
+            side, contract = side_map[base_cmd]
+            dtx_limit = 100 if is_3m else None
+            df = self.get_filtered_sout(side, contract, limit=30, offset=offset, dtx_limit=dtx_limit)
             if df is None or df.empty:
                 await event.answer("没有更多数据了", alert=True)
                 return
-            await event.respond(
-                self.format_compact_message(df, mode=f'sout_{cmd}'),
-                buttons=[Button.inline("更多 ⬇️", f"more_{cmd}_{offset+30}".encode())]
-            )
+            await event.respond(self.format_compact_message(df, mode=f'sout_{base_cmd}'), buttons=[Button.inline("更多 ⬇️", f"more_{cmd_raw}_{offset+30}".encode())])
             await event.answer()
 
+        @self.client.on(events.NewMessage(pattern=r'(?i)/start$'))
+        async def handle_start(event): await event.respond("欢迎！输入 `1` 查看指令菜单。")
         @self.client.on(events.NewMessage(pattern=r'^\?(\w+)'))
-        async def handle_quick(event):
+        async def handle_quick_link(event):
             ticker = event.pattern_match.group(1).upper()
             await event.respond(f"🔍 **[{ticker}](https://www.google.com/finance/quote/{ticker}:NASDAQ)**", link_preview=False)
 
