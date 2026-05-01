@@ -382,3 +382,7 @@ Traceback (most recent call last):
     result = await future
              ^^^^^^^^^^^^
 telethon.errors.rpcerrorlist.MessageTooLongError: Message was too long (caused by SendMessageRequest)
+2026-05-01 00:49:31,834 - Main - INFO - 系统正在初始化服务...
+2026-05-01 00:49:31,846 - telethon.network.mtprotosender - INFO - Connecting to 149.154.175.57:443/TcpFull...
+2026-05-01 00:49:31,895 - telethon.network.mtprotosender - INFO - Connection to 149.154.175.57:443/TcpFull complete!
+2026-05-01 00:49:32,220 - bot.handlers - INFO - 🤖 Bot 已启动

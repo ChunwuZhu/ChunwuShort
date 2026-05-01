@@ -270,3 +270,132 @@ CONTEXT:  JSON data, line 1: ... "Strike /\u00a0Spot\u00a0%": -25.99, "Cond": Na
 2026-05-01 00:48:52,406 - ScraperService - INFO - ⏱ [Tick 19] 执行高频实时抓取: Unusual Trades (/sout)
 2026-05-01 00:48:52,417 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
 2026-05-01 00:48:53,639 - ScraperService - INFO - ✅ [fintel_sout] 插入 1929 条新记录。
+2026-05-01 00:49:53,770 - ScraperService - INFO - ⏱ [Tick 20] 执行高频实时抓取: Unusual Trades (/sout)
+2026-05-01 00:49:53,779 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
+2026-05-01 00:49:54,912 - ScraperService - INFO - ✅ [fintel_sout] 插入 1933 条新记录。
+2026-05-01 00:50:54,967 - ScraperService - INFO - ⏱ [Tick 21] 执行高频实时抓取: Unusual Trades (/sout)
+2026-05-01 00:50:54,971 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
+2026-05-01 00:50:56,167 - ScraperService - INFO - ✅ [fintel_sout] 插入 1929 条新记录。
+2026-05-01 00:51:56,244 - ScraperService - INFO - ⏱ [Tick 22] 执行高频实时抓取: Unusual Trades (/sout)
+2026-05-01 00:51:56,252 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
+2026-05-01 00:51:57,446 - ScraperService - INFO - ✅ [fintel_sout] 插入 1933 条新记录。
+2026-05-01 00:52:57,523 - ScraperService - INFO - ⏱ [Tick 23] 执行高频实时抓取: Unusual Trades (/sout)
+2026-05-01 00:52:57,535 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
+2026-05-01 00:52:58,566 - ScraperService - INFO - ✅ [fintel_sout] 插入 1929 条新记录。
+2026-05-01 00:53:58,643 - ScraperService - INFO - ⏱ [Tick 24] 执行高频实时抓取: Unusual Trades (/sout)
+2026-05-01 00:53:58,653 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
+2026-05-01 00:53:59,648 - ScraperService - INFO - ✅ [fintel_sout] 插入 1933 条新记录。
+2026-05-01 00:54:59,725 - ScraperService - INFO - ⏱ [Tick 25] 执行高频实时抓取: Unusual Trades (/sout)
+2026-05-01 00:54:59,738 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
+2026-05-01 00:55:00,817 - ScraperService - INFO - ✅ [fintel_sout] 插入 1929 条新记录。
+2026-05-01 00:56:00,894 - ScraperService - INFO - ⏱ [Tick 26] 执行高频实时抓取: Unusual Trades (/sout)
+2026-05-01 00:56:00,905 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
+2026-05-01 00:56:01,988 - ScraperService - INFO - ✅ [fintel_sout] 插入 1933 条新记录。
+/opt/miniconda3/lib/python3.13/multiprocessing/resource_tracker.py:301: UserWarning: resource_tracker: There appear to be 1 leaked semaphore objects to clean up at shutdown: {'/mp-buy4g84g'}
+  warnings.warn(
+  File "/Users/chunwu/Desktop/ChunwuShort/scraper_service.py", line 13
+    logging.basicConfig(
+                       ^
+SyntaxError: '(' was never closed
+  File "/Users/chunwu/Desktop/ChunwuShort/scraper_service.py", line 13
+    logging.basicConfig(
+                       ^
+SyntaxError: '(' was never closed
+  File "/Users/chunwu/Desktop/ChunwuShort/scraper_service.py", line 13
+    logging.basicConfig(
+                       ^
+SyntaxError: '(' was never closed
+  File "/Users/chunwu/Desktop/ChunwuShort/scraper_service.py", line 13
+    logging.basicConfig(
+                       ^
+SyntaxError: '(' was never closed
+2026-05-01 00:58:17,985 - ScraperService - INFO - 正在启动 Fintel 多标签浏览器...
+2026-05-01 00:58:19,148 - ScraperService - INFO - patching driver executable /Users/chunwu/Library/Application Support/undetected_chromedriver/undetected_chromedriver
+/opt/miniconda3/lib/python3.13/multiprocessing/resource_tracker.py:301: UserWarning: resource_tracker: There appear to be 1 leaked semaphore objects to clean up at shutdown: {'/mp-8pb1744v'}
+  warnings.warn(
+2026-05-01 00:58:19,938 - ScraperService - INFO - 正在启动 Fintel 多标签浏览器...
+2026-05-01 00:58:21,025 - ScraperService - INFO - patching driver executable /Users/chunwu/Library/Application Support/undetected_chromedriver/undetected_chromedriver
+2026-05-01 00:58:29,991 - ScraperService - INFO - 标签页已就绪: https://fintel.io/sout
+2026-05-01 00:58:32,619 - ScraperService - INFO - 标签页已就绪: https://fintel.io/shortSqueeze
+2026-05-01 00:58:35,193 - ScraperService - INFO - 标签页已就绪: https://fintel.io/gammaSqueeze
+2026-05-01 00:58:39,389 - ScraperService - INFO - 标签页已就绪: https://fintel.io/sofStockLeaderboard
+2026-05-01 00:58:41,464 - ScraperService - INFO - ⏱ [Tick 0] 执行高频实时抓取: Unusual Trades (/sout)
+2026-05-01 00:58:41,497 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
+2026-05-01 00:58:42,383 - ScraperService - ERROR - ❌ 数据库操作失败: (psycopg2.errors.UniqueViolation) duplicate key value violates unique constraint "unique_data_hash"
+DETAIL:  Key (data_hash)=(cc2867d8b5c42ccbad8e14339dfe0fea) already exists.
+
+[SQL: INSERT INTO fintel_sout (scraped_at, ticker, security_name, metrics, data_hash) VALUES (%(scraped_at__0)s, %(ticker__0)s, %(security_name__0)s, %(metrics__0)s::JSONB, %(data_hash__0)s), (%(scraped_at__1)s, %(ticker__1)s, %(security_name__1)s, %(metri ... 108185 characters truncated ... ped_at__999)s, %(ticker__999)s, %(security_name__999)s, %(metrics__999)s::JSONB, %(data_hash__999)s)]
+[parameters: {'security_name__0': 'INTC', 'scraped_at__0': datetime.datetime(2026, 5, 1, 0, 58, 41, 987537), 'ticker__0': 'INTC', 'data_hash__0': 'ea0e20c0641e2ddb87d963086db469b3', 'metrics__0': '{"Date": "2026-04-30", "Time": "15:59:42", "Symbol": "INTC", "Trade Side": "SELL", "Side": "-O-|---", "Contract": "CALL", "Expiry": "2026-05-15", "DT ... (101 characters truncated) ... ll, "Event": null, "Trade": "SPHR-SPLIT", "Open Int": 32908, "IVOL": 0.91, "Premium Paid ($)": 1605000, "Premium Sigmas": "3.33", "Security": "INTC"}', 'security_name__1': 'INTC', 'scraped_at__1': datetime.datetime(2026, 5, 1, 0, 58, 41, 987537), 'ticker__1': 'INTC', 'data_hash__1': 'd2ca0886152031aa73b2b7cb7263e386', 'metrics__1': '{"Date": "2026-04-30", "Time": "15:59:42", "Symbol": "INTC", "Trade Side": "SELL", "Side": "-O-|---", "Contract": "CALL", "Expiry": "2026-05-15", "DT ... (101 characters truncated) ... ll, "Event": null, "Trade": "SPHR-TRADE", "Open Int": 32908, "IVOL": 0.91, "Premium Paid ($)": 1237500, "Premium Sigmas": "2.47", "Security": "INTC"}', 'security_name__2': 'JBLU', 'scraped_at__2': datetime.datetime(2026, 5, 1, 0, 58, 41, 987537), 'ticker__2': 'JBLU', 'data_hash__2': '67586c2e225833e3a4f91bec9a42c567', 'metrics__2': '{"Date": "2026-04-30", "Time": "15:59:40", "Symbol": "JBLU", "Trade Side": "BUY", "Side": "---|O--", "Contract": "CALL", "Expiry": "2026-05-15", "DTX ... (105 characters truncated) ... OR OI", "Event": null, "Trade": "BOX-TRADE", "Open Int": 2409, "IVOL": 0.84, "Premium Paid ($)": 80000, "Premium Sigmas": "2.01", "Security": "JBLU"}', 'security_name__3': 'PAGP', 'scraped_at__3': datetime.datetime(2026, 5, 1, 0, 58, 41, 987537), 'ticker__3': 'PAGP', 'data_hash__3': '13b176584612b6a0455977b742358814', 'metrics__3': '{"Date": "2026-04-30", "Time": "15:59:05", "Symbol": "PAGP", "Trade Side": "BUY", "Side": "---|-O-", "Contract": "CALL", "Expiry": "2027-01-15", "DTX ... (100 characters truncated) ... ll, "Event": null, "Trade": "MULTI-SWEEP", "Open Int": 28762, "IVOL": 0.19, "Premium Paid ($)": 166515, "Premium Sigmas": "5.71", "Security": "PAGP"}', 'security_name__4': 'PAGP', 'scraped_at__4': datetime.datetime(2026, 5, 1, 0, 58, 41, 987537), 'ticker__4': 'PAGP', 'data_hash__4': '04c16e6de5d4d4f4dc46985584e46d90', 'metrics__4': '{"Date": "2026-04-30", "Time": "15:59:05", "Symbol": "PAGP", "Trade Side": "BUY", "Side": "---|-O-", "Contract": "CALL", "Expiry": "2027-01-15", "DTX ... (98 characters truncated) ... null, "Event": null, "Trade": "ISE-TRADE", "Open Int": 28762, "IVOL": 0.19, "Premium Paid ($)": 141015, "Premium Sigmas": "4.70", "Security": "PAGP"}', 'security_name__5': 'INTC', 'scraped_at__5': datetime.datetime(2026, 5, 1, 0, 58, 41, 987537), 'ticker__5': 'INTC', 'data_hash__5': '7e6e55952d4fb25047fae02455b2867d', 'metrics__5': '{"Date": "2026-04-30", "Time": "15:58:59", "Symbol": "INTC", "Trade Side": "SELL", "Side": "--O|---", "Contract": "CALL", "Expiry": "2026-05-15", "DT ... (101 characters truncated) ... ll, "Event": null, "Trade": "EDGX-SPLIT", "Open Int": 32908, "IVOL": 0.93, "Premium Paid ($)": 1597870, "Premium Sigmas": "3.31", "Security": "INTC"}', 'security_name__6': 'ZBRA', 'scraped_at__6': datetime.datetime(2026, 5, 1, 0, 58, 41, 987537), 'ticker__6': 'ZBRA', 'data_hash__6': '48f8d18f25832d1f377a18b679c0d927', 'metrics__6': '{"Date": "2026-04-30", "Time": "15:58:32", "Symbol": "ZBRA", "Trade Side": "SELL", "Side": "--O|---", "Contract": "CALL", "Expiry": "2026-05-15", "DT ... (110 characters truncated) ... IOR OI", "Event": null, "Trade": "MULTI-SWEEP", "Open Int": 23, "IVOL": 0.74, "Premium Paid ($)": 419250, "Premium Sigmas": null, "Security": "ZBRA"}', 'security_name__7': 'INTC', 'scraped_at__7': datetime.datetime(2026, 5, 1, 0, 58, 41, 987537), 'ticker__7': 'INTC', 'data_hash__7': 'e9c27b8ee713f3ef6a9323578776cc4e', 'metrics__7': '{"Date": "2026-04-30", "Time": "15:58:32", "Symbol": "INTC", "Trade Side": "SELL", "Side": "-O-|---", "Contract": "CALL", "Expiry": "2026-05-15", "DT ... (101 characters truncated) ... ll, "Event": null, "Trade": "SPHR-TRADE", "Open Int": 32908, "IVOL": 0.92, "Premium Paid ($)": 1595370, "Premium Sigmas": "3.30", "Security": "INTC"}', 'security_name__8': 'CHTR', 'scraped_at__8': datetime.datetime(2026, 5, 1, 0, 58, 41, 987537), 'ticker__8': 'CHTR', 'data_hash__8': '3695e46956d86c18c966a2d784840206', 'metrics__8': '{"Date": "2026-04-30", "Time": "15:58:19", "Symbol": "CHTR", "Trade Side": "BUY", "Side": "---|O--", "Contract": "PUT", "Expiry": "2026-06-18", "DTX" ... (99 characters truncated) ... ull, "Event": null, "Trade": "PHLX-SPLIT", "Open Int": 1000, "IVOL": 0.0, "Premium Paid ($)": 7503820, "Premium Sigmas": "23.79", "Security": "CHTR"}', 'security_name__9': 'NVDA', 'scraped_at__9': datetime.datetime(2026, 5, 1, 0, 58, 41, 987537), 'ticker__9': 'NVDA', 'data_hash__9': 'eaed6e9f2717364cd65eecedc951b012', 'metrics__9': '{"Date": "2026-04-30", "Time": "15:58:19", "Symbol": "NVDA", "Trade Side": "SELL", "Side": "--O|---", "Contract": "PUT", "Expiry": "2027-03-19", "DTX ... (99 characters truncated) ... ull, "Event": null, "Trade": "ARCA-TRADE", "Open Int": 3985, "IVOL": 0.44, "Premium Paid ($)": 4365000, "Premium Sigmas": "6.06", "Security": "NVDA"}' ... 4900 parameters truncated ... 'security_name__990': 'PHAT', 'scraped_at__990': datetime.datetime(2026, 5, 1, 0, 58, 41, 987537), 'ticker__990': 'PHAT', 'data_hash__990': '9eec0aaa44441d22c78aa0a58fd52a81', 'metrics__990': '{"Date": "2026-04-29", "Time": "15:15:36", "Symbol": "PHAT", "Trade Side": "BUY", "Side": "---|-O-", "Contract": "CALL", "Expiry": "2026-08-21", "DTX ... (118 characters truncated) ... vent": "Pre-Earnings", "Trade": "MULTI-SWEEP", "Open Int": 37, "IVOL": 0.93, "Premium Paid ($)": 74500, "Premium Sigmas": "3.90", "Security": "PHAT"}', 'security_name__991': 'BMNR', 'scraped_at__991': datetime.datetime(2026, 5, 1, 0, 58, 41, 987537), 'ticker__991': 'BMNR', 'data_hash__991': 'b29adf4a97d5b9f970251727cbd3eb6f', 'metrics__991': '{"Date": "2026-04-29", "Time": "15:14:01", "Symbol": "BMNR", "Trade Side": "BUY", "Side": "---|-O-", "Contract": "CALL", "Expiry": "2026-08-21", "DTX ... (98 characters truncated) ... ull, "Event": null, "Trade": "MULTI-SWEEP", "Open Int": 3435, "IVOL": 0.84, "Premium Paid ($)": 687842, "Premium Sigmas": "4.22", "Security": "BMNR"}', 'security_name__992': 'INTC', 'scraped_at__992': datetime.datetime(2026, 5, 1, 0, 58, 41, 987537), 'ticker__992': 'INTC', 'data_hash__992': '0daa2375dfb83857fba945468095033e', 'metrics__992': '{"Date": "2026-04-29", "Time": "15:12:40", "Symbol": "INTC", "Trade Side": "BUY", "Side": "---|-O-", "Contract": "CALL", "Expiry": "2026-05-01", "DTX ... (101 characters truncated) ... l, "Event": null, "Trade": "MULTI-SWEEP", "Open Int": 15934, "IVOL": 1.25, "Premium Paid ($)": 1385000, "Premium Sigmas": "2.81", "Security": "INTC"}', 'security_name__993': 'SOXS', 'scraped_at__993': datetime.datetime(2026, 5, 1, 0, 58, 41, 987537), 'ticker__993': 'SOXS', 'data_hash__993': '5ba3b20a43d601eaa6b8bbddf4c0049b', 'metrics__993': '{"Date": "2026-04-29", "Time": "15:12:00", "Symbol": "SOXS", "Trade Side": "SELL", "Side": "-O-|---", "Contract": "PUT", "Expiry": "2026-05-08", "DTX ... (96 characters truncated) ... null, "Event": null, "Trade": "ARCA-SPLIT", "Open Int": 3101, "IVOL": 1.49, "Premium Paid ($)": 677774, "Premium Sigmas": "8.50", "Security": "SOXS"}', 'security_name__994': 'SOXS', 'scraped_at__994': datetime.datetime(2026, 5, 1, 0, 58, 41, 987537), 'ticker__994': 'SOXS', 'data_hash__994': '716fe033d90c730a258deeab445c2d55', 'metrics__994': '{"Date": "2026-04-29", "Time": "15:12:00", "Symbol": "SOXS", "Trade Side": "SELL", "Side": "-O-|---", "Contract": "PUT", "Expiry": "2026-05-08", "DTX ... (96 characters truncated) ... null, "Event": null, "Trade": "ARCA-TRADE", "Open Int": 3101, "IVOL": 1.49, "Premium Paid ($)": 582402, "Premium Sigmas": "7.15", "Security": "SOXS"}', 'security_name__995': 'LRCX', 'scraped_at__995': datetime.datetime(2026, 5, 1, 0, 58, 41, 987537), 'ticker__995': 'LRCX', 'data_hash__995': '6608f92e9a4034a946020e7c4b54b4ca', 'metrics__995': '{"Date": "2026-04-29", "Time": "15:10:25", "Symbol": "LRCX", "Trade Side": "BUY", "Side": "---|O--", "Contract": "CALL", "Expiry": "2026-08-21", "DTX ... (99 characters truncated) ... ull, "Event": null, "Trade": "SPHR-TRADE", "Open Int": 5582, "IVOL": 0.64, "Premium Paid ($)": 3420000, "Premium Sigmas": "4.85", "Security": "LRCX"}', 'security_name__996': 'AMZN', 'scraped_at__996': datetime.datetime(2026, 5, 1, 0, 58, 41, 987537), 'ticker__996': 'AMZN', 'data_hash__996': 'ccde8a376b5f932b8516cc1440797aba', 'metrics__996': '{"Date": "2026-04-29", "Time": "15:09:16", "Symbol": "AMZN", "Trade Side": "SELL", "Side": "-O-|---", "Contract": "CALL", "Expiry": "2027-12-17", "DT ... (111 characters truncated) ... t": "Pre-Earnings", "Trade": "CBOE-SPLIT", "Open Int": 3923, "IVOL": 0.37, "Premium Paid ($)": 7055720, "Premium Sigmas": "8.40", "Security": "AMZN"}', 'security_name__997': 'AMZN', 'scraped_at__997': datetime.datetime(2026, 5, 1, 0, 58, 41, 987537), 'ticker__997': 'AMZN', 'data_hash__997': '7a1cfa15031665ba09bbb78dfddb33e4', 'metrics__997': '{"Date": "2026-04-29", "Time": "15:09:16", "Symbol": "AMZN", "Trade Side": "SELL", "Side": "-O-|---", "Contract": "CALL", "Expiry": "2027-12-17", "DT ... (111 characters truncated) ... t": "Pre-Earnings", "Trade": "CBOE-TRADE", "Open Int": 3923, "IVOL": 0.37, "Premium Paid ($)": 6881700, "Premium Sigmas": "8.19", "Security": "AMZN"}', 'security_name__998': 'CRWV', 'scraped_at__998': datetime.datetime(2026, 5, 1, 0, 58, 41, 987537), 'ticker__998': 'CRWV', 'data_hash__998': '576636a2dff8dc7b0ebf76c0e9845b21', 'metrics__998': '{"Date": "2026-04-29", "Time": "15:08:55", "Symbol": "CRWV", "Trade Side": "SELL", "Side": "-O-|---", "Contract": "CALL", "Expiry": "2026-12-18", "DT ... (102 characters truncated) ... ll, "Event": null, "Trade": "MULTI-SWEEP", "Open Int": 1198, "IVOL": 0.85, "Premium Paid ($)": 1395180, "Premium Sigmas": "2.77", "Security": "CRWV"}', 'security_name__999': 'ORCL', 'scraped_at__999': datetime.datetime(2026, 5, 1, 0, 58, 41, 987537), 'ticker__999': 'ORCL', 'data_hash__999': '7dd77b93b64fd48e8743457db50b5321', 'metrics__999': '{"Date": "2026-04-29", "Time": "15:07:56", "Symbol": "ORCL", "Trade Side": "BUY", "Side": "---|O--", "Contract": "PUT", "Expiry": "2027-06-17", "DTX" ... (99 characters truncated) ... ull, "Event": null, "Trade": "PHLX-TRADE", "Open Int": 2765, "IVOL": 0.57, "Premium Paid ($)": 1410000, "Premium Sigmas": "2.33", "Security": "ORCL"}'}]
+(Background on this error at: https://sqlalche.me/e/20/gkpj)
+2026-05-01 00:58:42,383 - ScraperService - INFO - 📅 [Tick 0] 执行低频全量更新: Short / Gamma / Option Flow
+2026-05-01 00:58:42,398 - ScraperService - INFO - 🔄 正在刷新并抓取: https://fintel.io/shortSqueeze
+2026-05-01 00:58:51,201 - ScraperService - INFO - ✅ [fintel_short_squeeze] 插入 250 条新记录。
+2026-05-01 00:58:51,214 - ScraperService - INFO - 🔄 正在刷新并抓取: https://fintel.io/gammaSqueeze
+2026-05-01 00:58:59,736 - ScraperService - INFO - ✅ [fintel_gamma_squeeze] 插入 250 条新记录。
+2026-05-01 00:58:59,753 - ScraperService - INFO - 🔄 正在刷新并抓取: https://fintel.io/sofStockLeaderboard
+2026-05-01 00:59:08,249 - ScraperService - INFO - ✅ [fintel_option_flow] 插入 738 条新记录。
+2026-05-01 00:59:08,250 - ScraperService - INFO - ✅ 低频全量更新完成。
+/opt/miniconda3/lib/python3.13/multiprocessing/resource_tracker.py:301: UserWarning: resource_tracker: There appear to be 1 leaked semaphore objects to clean up at shutdown: {'/mp-an6j6na9'}
+  warnings.warn(
+2026-05-01 00:59:48,355 - ScraperService - INFO - 正在启动 Fintel 多标签浏览器...
+2026-05-01 00:59:49,431 - ScraperService - INFO - patching driver executable /Users/chunwu/Library/Application Support/undetected_chromedriver/undetected_chromedriver
+2026-05-01 00:59:58,008 - ScraperService - INFO - 标签页已就绪: https://fintel.io/sout
+2026-05-01 01:00:00,723 - ScraperService - INFO - 标签页已就绪: https://fintel.io/shortSqueeze
+2026-05-01 01:00:03,230 - ScraperService - INFO - 标签页已就绪: https://fintel.io/gammaSqueeze
+2026-05-01 01:00:05,631 - ScraperService - INFO - 标签页已就绪: https://fintel.io/sofStockLeaderboard
+2026-05-01 01:00:07,707 - ScraperService - INFO - ⏱ [Tick 0] 执行高频实时抓取: Unusual Trades (/sout)
+2026-05-01 01:00:07,733 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
+2026-05-01 01:00:08,608 - ScraperService - INFO - ✅ [fintel_sout] 成功存入 2482 条记录。
+2026-05-01 01:00:08,608 - ScraperService - INFO - 📅 [Tick 0] 执行低频全量更新: Short / Gamma / Option Flow
+2026-05-01 01:00:08,623 - ScraperService - INFO - 🔄 正在刷新并抓取: https://fintel.io/shortSqueeze
+2026-05-01 01:00:17,428 - ScraperService - INFO - ✅ [fintel_short_squeeze] 成功存入 250 条记录。
+2026-05-01 01:00:17,444 - ScraperService - INFO - 🔄 正在刷新并抓取: https://fintel.io/gammaSqueeze
+/opt/miniconda3/lib/python3.13/multiprocessing/resource_tracker.py:301: UserWarning: resource_tracker: There appear to be 1 leaked semaphore objects to clean up at shutdown: {'/mp-q0sq7_ab'}
+  warnings.warn(
+2026-05-01 01:00:25,016 - ScraperService - INFO - 正在启动 Fintel 多标签浏览器...
+2026-05-01 01:00:26,105 - ScraperService - INFO - patching driver executable /Users/chunwu/Library/Application Support/undetected_chromedriver/undetected_chromedriver
+2026-05-01 01:00:34,662 - ScraperService - INFO - 标签页已就绪: https://fintel.io/sout
+2026-05-01 01:00:37,335 - ScraperService - INFO - 标签页已就绪: https://fintel.io/shortSqueeze
+2026-05-01 01:00:39,832 - ScraperService - INFO - 标签页已就绪: https://fintel.io/gammaSqueeze
+2026-05-01 01:00:42,270 - ScraperService - INFO - 标签页已就绪: https://fintel.io/sofStockLeaderboard
+2026-05-01 01:00:44,345 - ScraperService - INFO - ⏱ [Tick 0] 执行高频实时抓取: Unusual Trades (/sout)
+2026-05-01 01:00:44,378 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
+2026-05-01 01:00:45,254 - ScraperService - INFO - ✅ [fintel_sout] 成功存入 2456 条记录。
+2026-05-01 01:00:45,254 - ScraperService - INFO - 📅 [Tick 0] 执行低频全量更新: Short / Gamma / Option Flow
+2026-05-01 01:00:45,269 - ScraperService - INFO - 🔄 正在刷新并抓取: https://fintel.io/shortSqueeze
+2026-05-01 01:00:53,981 - ScraperService - INFO - ✅ [fintel_short_squeeze] 成功存入 250 条记录。
+2026-05-01 01:00:53,998 - ScraperService - INFO - 🔄 正在刷新并抓取: https://fintel.io/gammaSqueeze
+2026-05-01 01:01:02,494 - ScraperService - INFO - ✅ [fintel_gamma_squeeze] 成功存入 250 条记录。
+2026-05-01 01:01:02,509 - ScraperService - INFO - 🔄 正在刷新并抓取: https://fintel.io/sofStockLeaderboard
+2026-05-01 01:01:11,103 - ScraperService - INFO - ✅ [fintel_option_flow] 成功存入 738 条记录。
+2026-05-01 01:01:11,103 - ScraperService - INFO - ✅ 低频全量更新完成。
+/opt/miniconda3/lib/python3.13/multiprocessing/resource_tracker.py:301: UserWarning: resource_tracker: There appear to be 1 leaked semaphore objects to clean up at shutdown: {'/mp-2rlwnuau'}
+  warnings.warn(
+2026-05-01 01:01:51,591 - ScraperService - INFO - 正在启动 Fintel 多标签浏览器...
+2026-05-01 01:01:52,678 - ScraperService - INFO - patching driver executable /Users/chunwu/Library/Application Support/undetected_chromedriver/undetected_chromedriver
+2026-05-01 01:02:01,284 - ScraperService - INFO - 标签页已就绪: https://fintel.io/sout
+2026-05-01 01:02:03,861 - ScraperService - INFO - 标签页已就绪: https://fintel.io/shortSqueeze
+2026-05-01 01:02:06,335 - ScraperService - INFO - 标签页已就绪: https://fintel.io/gammaSqueeze
+2026-05-01 01:02:08,729 - ScraperService - INFO - 标签页已就绪: https://fintel.io/sofStockLeaderboard
+2026-05-01 01:02:10,782 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
+2026-05-01 01:02:12,419 - ScraperService - INFO - ✅ [fintel_sout] 成功存入 2475 条记录。
+2026-05-01 01:02:12,425 - ScraperService - INFO - 🔄 正在刷新并抓取: https://fintel.io/shortSqueeze
+2026-05-01 01:02:21,117 - ScraperService - INFO - ✅ [fintel_short_squeeze] 成功存入 250 条记录。
+2026-05-01 01:02:21,124 - ScraperService - INFO - 🔄 正在刷新并抓取: https://fintel.io/gammaSqueeze
+2026-05-01 01:02:29,612 - ScraperService - INFO - ✅ [fintel_gamma_squeeze] 成功存入 250 条记录。
+2026-05-01 01:02:29,620 - ScraperService - INFO - 🔄 正在刷新并抓取: https://fintel.io/sofStockLeaderboard
+2026-05-01 01:02:38,240 - ScraperService - INFO - ✅ [fintel_option_flow] 成功存入 738 条记录。
+2026-05-01 01:03:38,334 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
+2026-05-01 01:04:40,027 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
+2026-05-01 01:05:41,272 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
+2026-05-01 01:06:42,514 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
+2026-05-01 01:07:43,744 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
+2026-05-01 01:08:44,997 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
+2026-05-01 01:09:46,281 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
+2026-05-01 01:10:47,563 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
+2026-05-01 01:11:48,755 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
+2026-05-01 01:12:50,009 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
+2026-05-01 01:13:51,304 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
+2026-05-01 01:14:52,580 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
+2026-05-01 01:15:53,841 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
+2026-05-01 01:16:55,087 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout

@@ -35,7 +35,7 @@ class ShortBot:
         finally:
             db.close()
 
-    def get_filtered_sout(self, side, contract, limit=30, offset=0, dtx_limit=None):
+    def get_filtered_sout(self, side, contract, limit=30, offset=0, dtx_limit=None, sigma_min=None):
         db = SessionLocal()
         try:
             results = db.query(FintelSout).order_by(FintelSout.id.desc()).all()
@@ -47,6 +47,11 @@ class ShortBot:
                         try:
                             dtx_val = int(pd.to_numeric(m.get('DTX', 999), errors='coerce'))
                             if dtx_val >= dtx_limit: continue
+                        except: continue
+                    if sigma_min:
+                        try:
+                            sig_val = float(pd.to_numeric(m.get('Premium Sigmas', 0), errors='coerce'))
+                            if sig_val < sigma_min: continue
                         except: continue
                     row = dict(m)
                     row['Security'] = r.security_name
@@ -68,8 +73,12 @@ class ShortBot:
         msg = f"{prefix}**{title}** ({datetime.now(self.tz).strftime('%H:%M')} CT)\n"
         lines = []
         for i, (_, row) in enumerate(df.iterrows(), 1):
-            ticker = str(row.get('Security', 'Unknown')).split(' / ')[0].strip().upper()
+            full_sec = str(row.get('Security', 'Unknown'))
+            ticker = full_sec.split(' / ')[0].strip().upper()
+            if not ticker or ticker == 'UNKNOWN':
+                ticker = str(row.get('Symbol', 'N/A')).upper()
             google_link = f"https://www.google.com/finance/quote/{ticker}:NASDAQ"
+            ticker_link = f"**[{ticker}]({google_link})**"
             if is_sout:
                 t = str(row.get('Time', '--:--'))[:5]
                 p = row.get('Premium Paid ($)', 0)
@@ -78,11 +87,11 @@ class ShortBot:
                 else: ps = f"{p:.0f}"
                 sig = f"{float(pd.to_numeric(row.get('Premium Sigmas', 0), errors='coerce')):.1f}"
                 dtx = str(row.get('DTX', '0'))
-                lines.append(f"`{t}` **[{ticker}]({google_link})** `{dtx}d` `{ps}` `s:{sig}`")
+                lines.append(f"`{t}` {ticker_link} `{dtx}d` `{ps}` `s:{sig}`")
             else:
                 score = f"{float(pd.to_numeric(row.iloc[2], errors='coerce')):.1f}"
                 extra = f"{float(pd.to_numeric(row.iloc[3], errors='coerce')):.1f}%"
-                lines.append(f"{i:02d}. **[{ticker}]({google_link})** {score} | {extra}")
+                lines.append(f"{i:02d}. {ticker_link} {score} | {extra}")
         return msg + "\n".join(lines)
 
     async def send_scheduled_report(self):
@@ -102,9 +111,10 @@ class ShortBot:
                 "📊 **Short:** /top | /change\n"
                 "📈 **Gamma:** /topg | /changeg\n"
                 "💰 **Flow:**  /topo\n"
-                "🔥 **实时异动 (Live):**\n"
+                "🔥 **实时 (Live):**\n"
                 "  /bc | /bp | /sc | /sp\n"
-                "  /bc3m | /bp3m | /sc3m | /sp3m (DTX<100)\n"
+                "  /bc3m | /bp3m | /sc3m | /sp3m\n"
+                "  /bc3m5s | /bp3m5s | /sc3m5s | /sp3m5s\n"
                 "🔍 **Quick:** `?代码` (例: `?TSLA`)\n"
                 "───|────────|──────\n"
                 "⏰ 08:15 & 15:15 CT 自动推送"
@@ -118,29 +128,30 @@ class ShortBot:
             df = self.get_latest_data(model)
             await event.respond(self.format_compact_message(df, mode=cmd))
 
-        @self.client.on(events.NewMessage(pattern=r'(?i)/(bc|bp|sc|sp)(3m)?'))
+        @self.client.on(events.NewMessage(pattern=r'(?i)/(bc|bp|sc|sp)(3m5s|3m)?'))
         async def handle_sout(event):
             base_cmd = event.pattern_match.group(1).lower()
-            is_3m = event.pattern_match.group(2) is not None
+            suffix = event.pattern_match.group(2)
             side_map = {'bc': ('BUY', 'CALL'), 'bp': ('BUY', 'PUT'), 'sc': ('SELL', 'CALL'), 'sp': ('SELL', 'PUT')}
             side, contract = side_map[base_cmd]
-            dtx_limit = 100 if is_3m else None
-            df = self.get_filtered_sout(side, contract, limit=30, offset=0, dtx_limit=dtx_limit)
-            await event.respond(
-                self.format_compact_message(df, mode=f'sout_{base_cmd}'),
-                buttons=[Button.inline("更多 ⬇️", f"more_{base_cmd}{'3m' if is_3m else ''}_30".encode())]
-            )
+            dtx_limit = 100 if suffix in ['3m', '3m5s'] else None
+            sigma_min = 5.0 if suffix == '3m5s' else None
+            df = self.get_filtered_sout(side, contract, limit=30, offset=0, dtx_limit=dtx_limit, sigma_min=sigma_min)
+            await event.respond(self.format_compact_message(df, mode=f'sout_{base_cmd}'), buttons=[Button.inline("更多 ⬇️", f"more_{base_cmd}{suffix if suffix else ''}_30".encode())])
 
         @self.client.on(events.CallbackQuery(pattern=r'more_(\w+)_(\d+)'))
         async def handle_more(event):
             cmd_raw = event.pattern_match.group(1).decode()
             offset = int(event.pattern_match.group(2).decode())
-            is_3m = '3m' in cmd_raw
-            base_cmd = cmd_raw.replace('3m', '')
+            suffix = ""
+            if '3m5s' in cmd_raw: suffix = '3m5s'
+            elif '3m' in cmd_raw: suffix = '3m'
+            base_cmd = cmd_raw.replace(suffix, '')
             side_map = {'bc': ('BUY', 'CALL'), 'bp': ('BUY', 'PUT'), 'sc': ('SELL', 'CALL'), 'sp': ('SELL', 'PUT')}
             side, contract = side_map[base_cmd]
-            dtx_limit = 100 if is_3m else None
-            df = self.get_filtered_sout(side, contract, limit=30, offset=offset, dtx_limit=dtx_limit)
+            dtx_limit = 100 if suffix in ['3m', '3m5s'] else None
+            sigma_min = 5.0 if suffix == '3m5s' else None
+            df = self.get_filtered_sout(side, contract, limit=30, offset=offset, dtx_limit=dtx_limit, sigma_min=sigma_min)
             if df is None or df.empty:
                 await event.answer("没有更多数据了", alert=True)
                 return
