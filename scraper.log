@@ -196,3 +196,32 @@ CONTEXT:  JSON data, line 1: ... "Strike /\u00a0Spot\u00a0%": -25.99, "Cond": Na
 2026-05-01 00:28:10,185 - ScraperService - INFO - Tick 2 完成。
 /opt/miniconda3/lib/python3.13/multiprocessing/resource_tracker.py:301: UserWarning: resource_tracker: There appear to be 1 leaked semaphore objects to clean up at shutdown: {'/mp-l3x2kwo5'}
   warnings.warn(
+2026-05-01 00:28:45,097 - ScraperService - INFO - 正在启动 Fintel 多标签浏览器...
+2026-05-01 00:28:46,400 - ScraperService - INFO - patching driver executable /Users/chunwu/Library/Application Support/undetected_chromedriver/undetected_chromedriver
+2026-05-01 00:28:54,926 - ScraperService - INFO - 标签页已就绪: https://fintel.io/sout
+2026-05-01 00:28:57,649 - ScraperService - INFO - 标签页已就绪: https://fintel.io/shortSqueeze
+2026-05-01 00:29:00,159 - ScraperService - INFO - 标签页已就绪: https://fintel.io/gammaSqueeze
+2026-05-01 00:29:02,524 - ScraperService - INFO - 标签页已就绪: https://fintel.io/sofStockLeaderboard
+2026-05-01 00:29:04,570 - ScraperService - INFO - ⏱ [Tick 0] 执行高频实时抓取: Unusual Trades (/sout)
+2026-05-01 00:29:04,586 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
+2026-05-01 00:29:05,988 - ScraperService - INFO - ✅ [fintel_sout] 插入 1933 条新记录。
+2026-05-01 00:29:05,989 - ScraperService - INFO - 📅 [Tick 0] 执行低频全量更新: Short / Gamma / Option Flow
+2026-05-01 00:29:05,994 - ScraperService - INFO - 🔄 正在刷新并抓取: https://fintel.io/shortSqueeze
+2026-05-01 00:29:14,858 - ScraperService - INFO - ✅ [fintel_short_squeeze] 插入 250 条新记录。
+2026-05-01 00:29:14,865 - ScraperService - INFO - 🔄 正在刷新并抓取: https://fintel.io/gammaSqueeze
+2026-05-01 00:29:23,399 - ScraperService - INFO - ✅ [fintel_gamma_squeeze] 插入 250 条新记录。
+2026-05-01 00:29:23,406 - ScraperService - INFO - 🔄 正在刷新并抓取: https://fintel.io/sofStockLeaderboard
+2026-05-01 00:29:32,015 - ScraperService - INFO - ✅ [fintel_option_flow] 插入 738 条新记录。
+2026-05-01 00:29:32,015 - ScraperService - INFO - ✅ 低频全量更新完成。
+2026-05-01 00:30:32,045 - ScraperService - INFO - ⏱ [Tick 1] 执行高频实时抓取: Unusual Trades (/sout)
+2026-05-01 00:30:32,065 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
+2026-05-01 00:30:33,509 - ScraperService - INFO - ✅ [fintel_sout] 插入 1929 条新记录。
+2026-05-01 00:31:33,586 - ScraperService - INFO - ⏱ [Tick 2] 执行高频实时抓取: Unusual Trades (/sout)
+2026-05-01 00:31:33,597 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
+2026-05-01 00:31:34,573 - ScraperService - INFO - ✅ [fintel_sout] 插入 1933 条新记录。
+2026-05-01 00:32:34,650 - ScraperService - INFO - ⏱ [Tick 3] 执行高频实时抓取: Unusual Trades (/sout)
+2026-05-01 00:32:34,661 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
+2026-05-01 00:32:35,628 - ScraperService - INFO - ✅ [fintel_sout] 插入 1929 条新记录。
+2026-05-01 00:33:35,705 - ScraperService - INFO - ⏱ [Tick 4] 执行高频实时抓取: Unusual Trades (/sout)
+2026-05-01 00:33:35,718 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
+2026-05-01 00:33:36,683 - ScraperService - INFO - ✅ [fintel_sout] 插入 1933 条新记录。
