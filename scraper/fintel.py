@@ -15,19 +15,18 @@ class FintelScraper:
     def __init__(self, visible=False):
         self.visible = visible
         self.driver = None
+        # 用于存储不同页面的标签页句柄
+        self.tab_map = {} # {url: handle}
 
-    def start_browser(self):
-        """初始化并启动浏览器"""
+    def start_browser(self, urls):
+        """初始化浏览器并为每个 URL 打开一个永久标签页"""
         if self.driver:
             return
         
-        logger.info(f"正在启动 Fintel 浏览器 (模式: {'可见' if self.visible else '静默'})...")
+        logger.info(f"正在启动 Fintel 多标签浏览器...")
         options = uc.ChromeOptions()
         options.add_argument("--start-minimized")
-        if self.visible:
-            options.add_argument("--window-size=1280,1024")
-            options.add_argument("--window-position=100,100")
-        else:
+        if not self.visible:
             options.add_argument("--window-size=1440,1080")
             options.add_argument("--window-position=-2000,-2000")
             
@@ -35,26 +34,43 @@ class FintelScraper:
         
         try:
             self.driver = uc.Chrome(options=options, version_main=147, headless=False)
-            # 初始检查登录
+            
+            # 1. 确保登录 (在第一个标签页)
             self._ensure_logged_in()
+            
+            # 2. 为每个 URL 创建并保存标签页
+            for i, url in enumerate(urls):
+                if i == 0:
+                    self.driver.get(url)
+                    self.tab_map[url] = self.driver.current_window_handle
+                else:
+                    # 打开新标签页
+                    self.driver.execute_script(f"window.open('{url}', '_blank');")
+                    # 切换到新打开的标签页并保存句柄
+                    new_handle = self.driver.window_handles[-1]
+                    self.driver.switch_to.window(new_handle)
+                    self.tab_map[url] = new_handle
+                
+                logger.info(f"标签页已就绪: {url}")
+                time.sleep(2)
+                
         except Exception as e:
-            logger.error(f"浏览器启动失败: {e}")
+            logger.error(f"多标签浏览器启动失败: {e}")
+            self.stop_browser()
             raise
 
     def stop_browser(self):
-        """关闭浏览器"""
         if self.driver:
             self.driver.quit()
             self.driver = None
+            self.tab_map = {}
             logger.info("浏览器已关闭。")
 
     def _ensure_logged_in(self):
-        """确保当前浏览器处于登录状态"""
         self.driver.get("https://fintel.io/d")
         time.sleep(5)
-        
         if "/d" not in self.driver.current_url and "/search" not in self.driver.current_url:
-            logger.info("🔑 Session 已失效，尝试自动登录...")
+            logger.info("🔑 需要重新登录...")
             self.driver.get("https://fintel.io/login")
             wait = WebDriverWait(self.driver, 30)
             try:
@@ -62,31 +78,31 @@ class FintelScraper:
                 self.driver.execute_script("arguments[0].value = arguments[1];", email, config.FINTEL_USER)
                 pwd = self.driver.find_element(By.NAME, "password")
                 self.driver.execute_script("arguments[0].value = arguments[1];", pwd, config.FINTEL_PASS)
-                
                 time.sleep(2)
                 submit = self.driver.find_element(By.XPATH, "//button[@type='submit']")
                 self.driver.execute_script("arguments[0].click();", submit)
-                
-                # 等待跳转
-                logger.info("等待登录跳转...")
                 time.sleep(15)
-                if "/d" not in self.driver.current_url and "/search" not in self.driver.current_url:
-                    logger.warning("自动登录可能失败，当前 URL: " + self.driver.current_url)
             except Exception as e:
-                logger.error(f"登录过程异常: {e}")
+                logger.error(f"自动登录异常: {e}")
 
     def _clean_security_name(self, val):
         if pd.isna(val): return "Unknown"
         return str(val).split('  ')[0].strip()
 
-    def scrape_url(self, url):
-        """在当前浏览器中抓取指定 URL 并返回 DataFrame"""
-        if not self.driver:
-            self.start_browser()
+    def scrape_from_tab(self, url):
+        """切换到对应的标签页，刷新并抓取数据"""
+        if not self.driver or url not in self.tab_map:
+            logger.error(f"标签页不存在或浏览器未启动: {url}")
+            return None
             
-        logger.info(f"📡 正在拉取数据: {url}")
         try:
-            self.driver.get(url)
+            # 切换到指定句柄
+            self.driver.switch_to.window(self.tab_map[url])
+            logger.info(f"🔄 正在刷新并抓取: {url}")
+            
+            # 刷新页面以获取最新数据
+            self.driver.refresh()
+            
             wait = WebDriverWait(self.driver, 30)
             wait.until(EC.presence_of_element_located((By.TAG_NAME, "table")))
             time.sleep(8) # 渲染缓冲
@@ -107,7 +123,7 @@ class FintelScraper:
                 return df_cleaned
             return None
         except Exception as e:
-            logger.error(f"抓取 URL 失败 ({url}): {e}")
-            # 如果崩溃了，尝试重置浏览器
+            logger.error(f"标签页抓取失败 ({url}): {e}")
+            # 如果发生错误（如标签页关闭），尝试重置
             self.stop_browser()
             return None
