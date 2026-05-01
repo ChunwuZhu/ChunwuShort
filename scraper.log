@@ -225,3 +225,18 @@ CONTEXT:  JSON data, line 1: ... "Strike /\u00a0Spot\u00a0%": -25.99, "Cond": Na
 2026-05-01 00:33:35,705 - ScraperService - INFO - ⏱ [Tick 4] 执行高频实时抓取: Unusual Trades (/sout)
 2026-05-01 00:33:35,718 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
 2026-05-01 00:33:36,683 - ScraperService - INFO - ✅ [fintel_sout] 插入 1933 条新记录。
+2026-05-01 00:34:36,760 - ScraperService - INFO - ⏱ [Tick 5] 执行高频实时抓取: Unusual Trades (/sout)
+2026-05-01 00:34:36,777 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
+2026-05-01 00:34:37,769 - ScraperService - INFO - ✅ [fintel_sout] 插入 1929 条新记录。
+2026-05-01 00:35:37,818 - ScraperService - INFO - ⏱ [Tick 6] 执行高频实时抓取: Unusual Trades (/sout)
+2026-05-01 00:35:37,831 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
+2026-05-01 00:35:38,835 - ScraperService - INFO - ✅ [fintel_sout] 插入 1933 条新记录。
+2026-05-01 00:36:38,906 - ScraperService - INFO - ⏱ [Tick 7] 执行高频实时抓取: Unusual Trades (/sout)
+2026-05-01 00:36:38,922 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
+2026-05-01 00:36:39,978 - ScraperService - INFO - ✅ [fintel_sout] 插入 1929 条新记录。
+2026-05-01 00:37:39,987 - ScraperService - INFO - ⏱ [Tick 8] 执行高频实时抓取: Unusual Trades (/sout)
+2026-05-01 00:37:39,997 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
+2026-05-01 00:37:41,006 - ScraperService - INFO - ✅ [fintel_sout] 插入 1933 条新记录。
+2026-05-01 00:38:41,083 - ScraperService - INFO - ⏱ [Tick 9] 执行高频实时抓取: Unusual Trades (/sout)
+2026-05-01 00:38:41,088 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
+2026-05-01 00:38:42,073 - ScraperService - INFO - ✅ [fintel_sout] 插入 1929 条新记录。
