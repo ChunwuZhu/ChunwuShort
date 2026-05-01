@@ -36,7 +36,7 @@ class ShortBot:
         finally:
             db.close()
 
-    def get_filtered_sout(self, side, contract, limit=30, offset=0, dtx_limit=None, sigma_min=None):
+    def get_filtered_sout(self, side, contract, limit=20, offset=0, dtx_limit=None, sigma_min=None):
         db = SessionLocal()
         try:
             results = db.query(FintelSout).order_by(FintelSout.id.desc()).all()
@@ -81,23 +81,17 @@ class ShortBot:
         title = mapping.get(mode, "Fintel 榜单") if is_sout else "Fintel 榜单"
         prefix = "📢 **[定时]** " if is_scheduled else "🔥 "
         msg = f"{prefix}**{title}** ({datetime.now(self.tz_ct).strftime('%H:%M')} CT)\n"
+        
+        # 统一取 20 条展示
+        df_display = df.head(20)
+        
         lines = []
-        for i, (_, row) in enumerate(df.iterrows(), 1):
-            # --- 极致兼容的 Ticker 提取逻辑 ---
-            full_sec = str(row.get('Security', '')).strip()
-            symbol_col = str(row.get('Symbol', '')).strip()
-            ticker_col = str(row.get('Ticker', '')).strip()
-            ticker = 'N/A'
-            if ' / ' in full_sec:
-                ticker = full_sec.split(' / ')[0].strip().upper()
-            elif full_sec and len(full_sec) <= 10 and full_sec.isalnum():
-                ticker = full_sec.upper()
-            elif symbol_col and symbol_col != 'nan':
-                ticker = symbol_col.upper()
-            elif ticker_col and ticker_col != 'nan':
-                ticker = ticker_col.upper()
+        for i, (_, row) in enumerate(df_display.iterrows(), 1):
+            full_sec = str(row.get('Security', ''))
+            ticker = full_sec.split(' / ')[0].strip().upper()
+            if not ticker or ticker == 'UNKNOWN' or ' / ' not in full_sec:
+                ticker = str(row.get('Symbol', row.get('Ticker', 'N/A'))).strip().upper().split(':')[0]
             
-            ticker = ticker.split(':')[0]
             google_link = f"https://www.google.com/finance/quote/{ticker}:NASDAQ"
             ticker_link = f"**[{ticker}]({google_link})**"
             
@@ -132,7 +126,7 @@ class ShortBot:
     async def send_scheduled_report(self):
         df = self.get_latest_data(ShortSqueeze)
         if df is not None:
-            await self.client.send_message(config.TARGET_GROUP_ID, self.format_compact_message(df, mode='top', is_scheduled=True))
+            await self.client.send_message(config.TARGET_GROUP_ID, self.format_compact_message(df, mode='top', is_scheduled=True), link_preview=False)
 
     async def start(self):
         await self.client.start(bot_token=config.TELEGRAM_BOT_TOKEN)
@@ -164,7 +158,7 @@ class ShortBot:
             cmd = event.pattern_match.group(1).lower()
             model = ShortSqueeze if cmd in ['top', 'change'] else (GammaSqueeze if 'g' in cmd else OptionFlow)
             df = self.get_latest_data(model)
-            await event.respond(self.format_compact_message(df, mode=cmd))
+            await event.respond(self.format_compact_message(df, mode=cmd), link_preview=False)
 
         @self.client.on(events.NewMessage(pattern=r'(?i)/(bc|bp|sc|sp)(3m5s|3m)?'))
         async def handle_sout(event):
@@ -174,9 +168,9 @@ class ShortBot:
             side, contract = side_map[base_cmd]
             dtx_limit = 100 if '3m' in suffix else None
             sigma_min = 5.0 if '5s' in suffix else None
-            df = self.get_filtered_sout(side, contract, limit=30, offset=0, dtx_limit=dtx_limit, sigma_min=sigma_min)
-            buttons = [Button.inline("下一页 ⬇️", f"page_{base_cmd}{suffix}_30".encode())]
-            await event.respond(self.format_compact_message(df, mode=f'sout_{base_cmd}'), buttons=buttons)
+            df = self.get_filtered_sout(side, contract, limit=20, offset=0, dtx_limit=dtx_limit, sigma_min=sigma_min)
+            buttons = [Button.inline("下一页 ⬇️", f"page_{base_cmd}{suffix}_20".encode())]
+            await event.respond(self.format_compact_message(df, mode=f'sout_{base_cmd}'), buttons=buttons, link_preview=False)
 
         @self.client.on(events.CallbackQuery(pattern=r'page_(\w+)_(\d+)'))
         async def handle_pagination(event):
@@ -190,17 +184,17 @@ class ShortBot:
             side, contract = side_map[base_cmd]
             dtx_limit = 100 if '3m' in suffix else None
             sigma_min = 5.0 if '5s' in suffix else None
-            df = self.get_filtered_sout(side, contract, limit=30, offset=offset, dtx_limit=dtx_limit, sigma_min=sigma_min)
+            df = self.get_filtered_sout(side, contract, limit=20, offset=offset, dtx_limit=dtx_limit, sigma_min=sigma_min)
             if df is None or df.empty:
                 await event.answer("没有更多数据了", alert=True)
                 return
             buttons = []
             row = []
-            if offset >= 30:
-                row.append(Button.inline("上一页 ⬆️", f"page_{cmd_raw}_{max(0, offset-30)}".encode()))
-            row.append(Button.inline("下一页 ⬇️", f"page_{cmd_raw}_{offset+30}".encode()))
+            if offset >= 20:
+                row.append(Button.inline("上一页 ⬆️", f"page_{cmd_raw}_{max(0, offset-20)}".encode()))
+            row.append(Button.inline("下一页 ⬇️", f"page_{cmd_raw}_{offset+20}".encode()))
             buttons.append(row)
-            await event.edit(self.format_compact_message(df, mode=f'sout_{base_cmd}'), buttons=buttons)
+            await event.edit(self.format_compact_message(df, mode=f'sout_{base_cmd}'), buttons=buttons, link_preview=False)
             await event.answer()
 
         @self.client.on(events.NewMessage(pattern=r'^\?(\w+)'))
