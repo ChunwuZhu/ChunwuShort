@@ -73,23 +73,27 @@ class ShortBot:
         msg = f"{prefix}**{title}** ({datetime.now(self.tz).strftime('%H:%M')} CT)\n"
         lines = []
         for i, (_, row) in enumerate(df.iterrows(), 1):
-            # --- 核心：多重兼容性 Ticker 提取逻辑 ---
-            # 1. 尝试从 Security 提取 (格式: "TICKER / Name")
-            full_sec = str(row.get('Security', ''))
-            ticker = 'UNKNOWN'
+            # --- 极致兼容的 Ticker 提取逻辑 ---
+            full_sec = str(row.get('Security', '')).strip()
+            symbol_col = str(row.get('Symbol', '')).strip()
+            ticker_col = str(row.get('Ticker', '')).strip()
+            
+            ticker = 'N/A'
+            # 优先级 1: "TICKER / Name" 格式
             if ' / ' in full_sec:
                 ticker = full_sec.split(' / ')[0].strip().upper()
+            # 优先级 2: 直接是 Ticker 的 Security 列
+            elif full_sec and len(full_sec) <= 10 and full_sec.isalnum():
+                ticker = full_sec.upper()
+            # 优先级 3: Symbol 列
+            elif symbol_col and symbol_col != 'nan':
+                ticker = symbol_col.upper()
+            # 优先级 4: Ticker 列
+            elif ticker_col and ticker_col != 'nan':
+                ticker = ticker_col.upper()
             
-            # 2. 如果失败，尝试直接获取 Symbol 列
-            if ticker == 'UNKNOWN' or not ticker:
-                ticker = str(row.get('Symbol', '')).strip().upper()
-            
-            # 3. 如果还是失败，尝试获取 Ticker 列
-            if ticker == 'UNKNOWN' or not ticker:
-                ticker = str(row.get('Ticker', '')).strip().upper()
-                
-            # 4. 兜底处理
-            if not ticker or ticker == 'NAN': ticker = 'N/A'
+            # 移除任何可能的 .NASDAQ 后缀
+            ticker = ticker.split(':')[0]
             
             google_link = f"https://www.google.com/finance/quote/{ticker}:NASDAQ"
             ticker_link = f"**[{ticker}]({google_link})**"
@@ -103,29 +107,28 @@ class ShortBot:
                 sig = f"{float(pd.to_numeric(row.get('Premium Sigmas', 0), errors='coerce')):.1f}"
                 dtx = str(row.get('DTX', '0'))
                 
-                # 获取并格式化行权价
+                # 行权价格式化 (加 $)
                 strike_val = row.get('Strike Price')
-                if pd.isna(strike_val) or strike_val is None:
-                    strike = "N/A"
-                else:
-                    try:
-                        v = float(pd.to_numeric(strike_val, errors='coerce'))
-                        strike = f"${v:g}" # 加上 $ 符号
-                    except:
-                        strike = str(strike_val)
+                try:
+                    s_v = float(pd.to_numeric(strike_val, errors='coerce'))
+                    strike = f"${s_v:g}"
+                except:
+                    strike = f"${strike_val}" if strike_val else "N/A"
                 
                 lines.append(f"`{t}` {ticker_link} `{dtx}d` `{strike}` `{ps}` `s:{sig}`")
             else:
-                # 榜单模式下的数值提取
-                try:
-                    val_raw = row.iloc[2] # 评分或变化
-                    score = f"{float(pd.to_numeric(val_raw, errors='coerce')):.1f}"
-                except: score = "N/A"
+                # 针对 Top 榜单的数据提取 (使用列名而不是 index 以保安全)
+                score_key = 'Short Squeeze Score' if 'Short Squeeze Score' in df.columns else 'Gamma Squeeze Score'
+                if score_key not in df.columns and len(df.columns) > 2: score_key = df.columns[2]
                 
-                try:
-                    sec_raw = row.iloc[3] # 做空占比等
-                    extra = f"{float(pd.to_numeric(sec_raw, errors='coerce')):.1f}%"
-                except: extra = "N/A"
+                extra_key = 'Short Float' if 'Short Float' in df.columns else 'Put/Call Ratio'
+                if extra_key not in df.columns and len(df.columns) > 3: extra_key = df.columns[3]
+                
+                try: score = f"{float(pd.to_numeric(row.get(score_key, 0), errors='coerce')):.1f}"
+                except: score = "0.0"
+                
+                try: extra = f"{float(pd.to_numeric(row.get(extra_key, 0), errors='coerce')):.1f}%"
+                except: extra = "0.0%"
                 
                 lines.append(f"{i:02d}. {ticker_link} {score} | {extra}")
         return msg + "\n".join(lines)
