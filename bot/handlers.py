@@ -7,7 +7,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from pytz import timezone
 from utils.config import config
 from utils.db import SessionLocal, ShortSqueeze, GammaSqueeze, FintelSout, OptionFlow
-from sqlalchemy import func
+from sqlalchemy import func, desc
 
 logger = logging.getLogger(__name__)
 
@@ -38,19 +38,27 @@ class ShortBot:
     def get_filtered_sout(self, side, contract, limit=30, offset=0):
         db = SessionLocal()
         try:
-            latest_time = db.query(func.max(FintelSout.scraped_at)).scalar()
-            if not latest_time: return None
-            # 按时间倒序
-            results = db.query(FintelSout).filter(FintelSout.scraped_at == latest_time).order_by(FintelSout.id.desc()).all()
+            # 改进排序逻辑：直接获取最新入库的所有匹配记录，并按入库顺序（ID）倒序排列
+            # 因为数据是增量入库的，ID 越大代表越晚抓取到的成交
+            results = db.query(FintelSout).order_by(FintelSout.id.desc()).all()
+            
             data = []
             for r in results:
                 m = r.metrics
                 if str(m.get('Trade Side')).upper() == side and str(m.get('Contract')).upper() == contract:
                     row = dict(m)
                     row['Security'] = r.security_name
+                    # 确保包含入库 ID 用于备用排序
+                    row['_db_id'] = r.id
                     data.append(row)
+            
             df = pd.DataFrame(data)
             if df.empty: return df
+            
+            # 再次确保按时间字段排序（如果存在）
+            if 'Time' in df.columns:
+                df = df.sort_values(by=['Date', 'Time'], ascending=False)
+            
             return df.iloc[offset:offset+limit]
         finally:
             db.close()
@@ -78,9 +86,8 @@ class ShortBot:
                 else: ps = f"{p:.0f}"
                 sig = f"{float(pd.to_numeric(row.get('Premium Sigmas', 0), errors='coerce')):.1f}"
                 dtx = str(row.get('DTX', '0'))
-                lines.append(f"{t} **[{ticker}]({google_link})** {dtx}d {ps} s:{sig}")
+                lines.append(f"`{t}` **[{ticker}]({google_link})** `{dtx}d` `{ps}` `s:{sig}`")
             else:
-                # 针对 Top 榜单做紧凑处理
                 score = f"{float(pd.to_numeric(row.iloc[2], errors='coerce')):.1f}"
                 extra = f"{float(pd.to_numeric(row.iloc[3], errors='coerce')):.1f}%"
                 lines.append(f"{i:02d}. **[{ticker}]({google_link})** {score} | {extra}")
@@ -94,15 +101,29 @@ class ShortBot:
 
     async def start(self):
         await self.client.start(bot_token=config.TELEGRAM_BOT_TOKEN)
-        logger.info("🤖 Bot 在线 (紧凑模式)")
+        logger.info("🤖 Bot 已重启")
 
-        # 菜单
+        # 恢复清晰易读的菜单布局
         @self.client.on(events.NewMessage(pattern=r'^1$'))
         async def handle_menu(event):
-            await event.respond("**菜单**\n/top /change /topg /changeg /topo\n/bc /bp /sc /sp | `?代码`", buttons=[
-                [Button.inline("Buy Call", b"more_bc_0"), Button.inline("Buy Put", b"more_bp_0")],
-                [Button.inline("Sell Call", b"more_sc_0"), Button.inline("Sell Put", b"more_sp_0")]
-            ])
+            menu_text = (
+                "🛠 **ShortChunwuBot 指令菜单**\n\n"
+                "📊 **Short Squeeze (做空)**\n"
+                "  /top - 挤压评分榜\n"
+                "  /change - 月度增幅榜\n\n"
+                "📈 **Gamma Squeeze (期权)**\n"
+                "  /topg - Gamma 评分榜\n"
+                "  /changeg - Gamma 增幅榜\n\n"
+                "💰 **Option Flow (资金)**\n"
+                "  /topo - 净权利金榜\n\n"
+                "🔥 **实时异动 (Live SOUT)**\n"
+                "  /bc (B-Call) | /bp (B-Put)\n"
+                "  /sc (S-Call) | /sp (S-Put)\n\n"
+                "🔍 **快捷查询**\n"
+                "  `?代码` (例: `?TSLA`)\n\n"
+                "⏰ 08:15 & 15:15 CT 自动推送"
+            )
+            await event.respond(menu_text)
 
         # 榜单指令
         @self.client.on(events.NewMessage(pattern=r'(?i)/(top|change|topg|changeg|topo)$'))
@@ -121,10 +142,10 @@ class ShortBot:
             df = self.get_filtered_sout(side, contract, limit=30, offset=0)
             await event.respond(
                 self.format_compact_message(df, mode=f'sout_{cmd}'),
-                buttons=[Button.inline("More ⬇️", f"more_{cmd}_30".encode())]
+                buttons=[Button.inline("更多 ⬇️", f"more_{cmd}_30".encode())]
             )
 
-        # 处理 More 按钮
+        # 处理更多按钮
         @self.client.on(events.CallbackQuery(pattern=r'more_(\w+)_(\d+)'))
         async def handle_more(event):
             cmd = event.pattern_match.group(1).decode()
@@ -137,7 +158,7 @@ class ShortBot:
                 return
             await event.respond(
                 self.format_compact_message(df, mode=f'sout_{cmd}'),
-                buttons=[Button.inline("More ⬇️", f"more_{cmd}_{offset+30}".encode())]
+                buttons=[Button.inline("更多 ⬇️", f"more_{cmd}_{offset+30}".encode())]
             )
             await event.answer()
 
