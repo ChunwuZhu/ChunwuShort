@@ -87,7 +87,14 @@ class ShortBot:
                 else: ps = f"{p:.0f}"
                 sig = f"{float(pd.to_numeric(row.get('Premium Sigmas', 0), errors='coerce')):.1f}"
                 dtx = str(row.get('DTX', '0'))
-                lines.append(f"`{t}` {ticker_link} `{dtx}d` `{ps}` `s:{sig}`")
+                # 获取并格式化行权价
+                strike = str(row.get('Strike Price', 'N/A'))
+                try:
+                    strike_val = float(pd.to_numeric(strike, errors='coerce'))
+                    strike = f"{strike_val:g}" # 移除不必要的 .0
+                except: pass
+                
+                lines.append(f"`{t}` {ticker_link} `{dtx}d` `{strike}` `{ps}` `s:{sig}`")
             else:
                 score = f"{float(pd.to_numeric(row.iloc[2], errors='coerce')):.1f}"
                 extra = f"{float(pd.to_numeric(row.iloc[3], errors='coerce')):.1f}%"
