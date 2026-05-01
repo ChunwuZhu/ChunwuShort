@@ -470,3 +470,6 @@ DETAIL:  Key (data_hash)=(cc2867d8b5c42ccbad8e14339dfe0fea) already exists.
 2026-05-01 01:54:41,620 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
 2026-05-01 01:55:43,128 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
 2026-05-01 01:56:44,357 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
+2026-05-01 01:57:45,673 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
+2026-05-01 01:58:46,901 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
+2026-05-01 01:59:48,150 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
