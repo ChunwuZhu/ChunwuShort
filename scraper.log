@@ -407,3 +407,9 @@ DETAIL:  Key (data_hash)=(cc2867d8b5c42ccbad8e14339dfe0fea) already exists.
 2026-05-01 01:23:02,659 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
 2026-05-01 01:24:03,901 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
 2026-05-01 01:25:05,190 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
+2026-05-01 01:26:06,445 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
+2026-05-01 01:27:07,686 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
+2026-05-01 01:28:08,941 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
+2026-05-01 01:29:10,109 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
+/opt/miniconda3/lib/python3.13/multiprocessing/resource_tracker.py:301: UserWarning: resource_tracker: There appear to be 1 leaked semaphore objects to clean up at shutdown: {'/mp-av7_kcib'}
+  warnings.warn(

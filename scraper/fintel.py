@@ -26,6 +26,12 @@ class FintelScraper:
         logger.info(f"正在启动 Fintel 多标签浏览器...")
         options = uc.ChromeOptions()
         options.add_argument("--start-minimized")
+        options.add_argument("--no-sandbox")
+        options.add_argument("--disable-dev-shm-usage")
+        options.add_argument("--disable-setuid-sandbox")
+        options.add_argument("--disable-notifications")
+        options.add_argument("--disable-popup-blocking")
+        
         if not self.visible:
             options.add_argument("--window-size=1440,1080")
             options.add_argument("--window-position=-2000,-2000")
@@ -131,7 +137,9 @@ class FintelScraper:
             self.driver.switch_to.window(self.tab_map[url])
             logger.info(f"🔄 正在刷新并抓取: {url}")
             
-            self.driver.refresh()
+            # 使用 JavaScript 进行刷新，通常比 driver.refresh() 更安静，不易抢夺焦点
+            self.driver.execute_script("location.reload();")
+            
             wait = WebDriverWait(self.driver, 30)
             wait.until(EC.presence_of_element_located((By.TAG_NAME, "table")))
             time.sleep(8) 
