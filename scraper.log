@@ -42,3 +42,52 @@
 2026-05-01 00:01:28,952 - ScraperService - INFO - 周期完成。等待 30 分钟...
 /opt/miniconda3/lib/python3.13/multiprocessing/resource_tracker.py:301: UserWarning: resource_tracker: There appear to be 1 leaked semaphore objects to clean up at shutdown: {'/mp-k6i0wpd7'}
   warnings.warn(
+2026-05-01 00:08:22,618 - ScraperService - INFO - 正在启动 Fintel 多标签浏览器...
+2026-05-01 00:08:24,024 - ScraperService - INFO - patching driver executable /Users/chunwu/Library/Application Support/undetected_chromedriver/undetected_chromedriver
+2026-05-01 00:08:32,927 - ScraperService - INFO - 标签页已就绪: https://fintel.io/sout
+2026-05-01 00:08:35,673 - ScraperService - INFO - 标签页已就绪: https://fintel.io/shortSqueeze
+2026-05-01 00:08:38,172 - ScraperService - INFO - 标签页已就绪: https://fintel.io/gammaSqueeze
+2026-05-01 00:08:40,233 - ScraperService - INFO - 🔄 正在刷新并抓取: https://fintel.io/sout
+2026-05-01 00:08:50,115 - ScraperService - ERROR - 标签页抓取失败 (https://fintel.io/sout): 'Security'
+2026-05-01 00:08:50,115 - ScraperService - INFO - 浏览器已关闭。
+2026-05-01 00:08:50,115 - ScraperService - ERROR - 标签页不存在或浏览器未启动: https://fintel.io/shortSqueeze
+2026-05-01 00:08:50,115 - ScraperService - ERROR - 标签页不存在或浏览器未启动: https://fintel.io/gammaSqueeze
+2026-05-01 00:08:50,115 - ScraperService - INFO - 第 1 次心跳完成。等待 1 分钟...
+2026-05-01 00:09:50,196 - ScraperService - INFO - 正在启动 Fintel 多标签浏览器...
+2026-05-01 00:09:51,299 - ScraperService - INFO - patching driver executable /Users/chunwu/Library/Application Support/undetected_chromedriver/undetected_chromedriver
+2026-05-01 00:09:59,915 - ScraperService - INFO - 标签页已就绪: https://fintel.io/sout
+2026-05-01 00:10:02,603 - ScraperService - INFO - 标签页已就绪: https://fintel.io/shortSqueeze
+2026-05-01 00:10:05,170 - ScraperService - INFO - 标签页已就绪: https://fintel.io/gammaSqueeze
+2026-05-01 00:10:07,261 - ScraperService - INFO - 🔄 正在刷新并抓取: https://fintel.io/sout
+2026-05-01 00:10:17,142 - ScraperService - ERROR - 标签页抓取失败 (https://fintel.io/sout): 'Security'
+2026-05-01 00:10:17,142 - ScraperService - INFO - 浏览器已关闭。
+2026-05-01 00:10:17,142 - ScraperService - INFO - 第 2 次心跳完成。等待 1 分钟...
+2026-05-01 00:11:17,218 - ScraperService - INFO - 正在启动 Fintel 多标签浏览器...
+2026-05-01 00:11:18,359 - ScraperService - INFO - patching driver executable /Users/chunwu/Library/Application Support/undetected_chromedriver/undetected_chromedriver
+2026-05-01 00:11:26,988 - ScraperService - INFO - 标签页已就绪: https://fintel.io/sout
+2026-05-01 00:11:29,680 - ScraperService - INFO - 标签页已就绪: https://fintel.io/shortSqueeze
+2026-05-01 00:11:32,294 - ScraperService - INFO - 标签页已就绪: https://fintel.io/gammaSqueeze
+2026-05-01 00:11:34,361 - ScraperService - INFO - 🔄 正在刷新并抓取: https://fintel.io/sout
+2026-05-01 00:11:44,905 - ScraperService - ERROR - 标签页抓取失败 (https://fintel.io/sout): 'Security'
+2026-05-01 00:11:44,905 - ScraperService - INFO - 浏览器已关闭。
+2026-05-01 00:11:44,906 - ScraperService - INFO - 第 3 次心跳完成。等待 1 分钟...
+2026-05-01 00:12:44,981 - ScraperService - INFO - 正在启动 Fintel 多标签浏览器...
+2026-05-01 00:12:46,097 - ScraperService - INFO - patching driver executable /Users/chunwu/Library/Application Support/undetected_chromedriver/undetected_chromedriver
+2026-05-01 00:12:54,523 - ScraperService - INFO - 标签页已就绪: https://fintel.io/sout
+2026-05-01 00:12:57,189 - ScraperService - INFO - 标签页已就绪: https://fintel.io/shortSqueeze
+2026-05-01 00:12:59,701 - ScraperService - INFO - 标签页已就绪: https://fintel.io/gammaSqueeze
+2026-05-01 00:13:01,741 - ScraperService - INFO - 🔄 正在刷新并抓取: https://fintel.io/sout
+2026-05-01 00:13:12,059 - ScraperService - ERROR - 标签页抓取失败 (https://fintel.io/sout): 'Security'
+2026-05-01 00:13:12,059 - ScraperService - INFO - 浏览器已关闭。
+2026-05-01 00:13:12,060 - ScraperService - INFO - 第 4 次心跳完成。等待 1 分钟...
+2026-05-01 00:14:12,072 - ScraperService - INFO - 正在启动 Fintel 多标签浏览器...
+2026-05-01 00:14:13,174 - ScraperService - INFO - patching driver executable /Users/chunwu/Library/Application Support/undetected_chromedriver/undetected_chromedriver
+2026-05-01 00:14:21,940 - ScraperService - INFO - 标签页已就绪: https://fintel.io/sout
+2026-05-01 00:14:24,607 - ScraperService - INFO - 标签页已就绪: https://fintel.io/shortSqueeze
+2026-05-01 00:14:27,250 - ScraperService - INFO - 标签页已就绪: https://fintel.io/gammaSqueeze
+2026-05-01 00:14:29,342 - ScraperService - INFO - 🔄 正在刷新并抓取: https://fintel.io/sout
+2026-05-01 00:14:39,136 - ScraperService - ERROR - 标签页抓取失败 (https://fintel.io/sout): 'Security'
+2026-05-01 00:14:39,136 - ScraperService - INFO - 浏览器已关闭。
+2026-05-01 00:14:39,136 - ScraperService - INFO - 第 5 次心跳完成。等待 1 分钟...
+/opt/miniconda3/lib/python3.13/multiprocessing/resource_tracker.py:301: UserWarning: resource_tracker: There appear to be 1 leaked semaphore objects to clean up at shutdown: {'/mp-z0eyjm3d'}
+  warnings.warn(

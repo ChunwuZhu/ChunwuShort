@@ -57,6 +57,22 @@ class FintelSout(Base):
         Index('idx_sout_data_hash', data_hash),
     )
 
+class OptionFlow(Base):
+    __tablename__ = 'fintel_option_flow'
+    
+    id = Column(Integer, primary_key=True)
+    scraped_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    ticker = Column(String(20), nullable=False)
+    security_name = Column(String(500))
+    rank = Column(Integer)
+    net_premium = Column(Numeric(20, 2))
+    put_call_ratio = Column(Numeric(10, 2))
+
+    __table_args__ = (
+        Index('idx_option_scraped_at', scraped_at.desc()),
+        Index('idx_option_ticker', ticker),
+    )
+
 engine = create_engine(config.DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
