@@ -245,3 +245,31 @@
 2026-04-30 00:43:01,349 - apscheduler.scheduler - INFO - Added job "ShortBot.send_scheduled_report" to job store "default"
 2026-04-30 00:43:01,349 - apscheduler.scheduler - INFO - Added job "ShortBot.send_scheduled_report" to job store "default"
 2026-04-30 00:43:01,349 - apscheduler.scheduler - INFO - Scheduler started
+2026-04-30 00:45:32,148 - Main - INFO - 系统正在初始化服务...
+2026-04-30 00:45:32,161 - bot.handlers - INFO - 正在以 Bot 模式启动...
+2026-04-30 00:45:32,161 - telethon.network.mtprotosender - INFO - Connecting to 149.154.175.57:443/TcpFull...
+2026-04-30 00:45:32,225 - telethon.network.mtprotosender - INFO - Connection to 149.154.175.57:443/TcpFull complete!
+2026-04-30 00:45:32,658 - bot.handlers - INFO - 🤖 ShortChunwuBot 已在线
+2026-04-30 00:45:32,662 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-04-30 00:45:32,662 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-04-30 00:45:32,663 - apscheduler.scheduler - INFO - Added job "ShortBot.send_scheduled_report" to job store "default"
+2026-04-30 00:45:32,663 - apscheduler.scheduler - INFO - Added job "ShortBot.send_scheduled_report" to job store "default"
+2026-04-30 00:45:32,663 - apscheduler.scheduler - INFO - Scheduler started
+2026-04-30 00:48:33,282 - undetected_chromedriver.patcher - INFO - patching driver executable /Users/chunwu/Library/Application Support/undetected_chromedriver/undetected_chromedriver
+2026-04-30 00:50:11,827 - undetected_chromedriver.patcher - INFO - patching driver executable /Users/chunwu/Library/Application Support/undetected_chromedriver/undetected_chromedriver
+2026-04-30 00:51:21,132 - undetected_chromedriver.patcher - INFO - patching driver executable /Users/chunwu/Library/Application Support/undetected_chromedriver/undetected_chromedriver
+2026-04-30 00:52:03,126 - undetected_chromedriver.patcher - INFO - patching driver executable /Users/chunwu/Library/Application Support/undetected_chromedriver/undetected_chromedriver
+2026-04-30 00:52:55,623 - undetected_chromedriver.patcher - INFO - patching driver executable /Users/chunwu/Library/Application Support/undetected_chromedriver/undetected_chromedriver
+2026-04-30 07:38:03,558 - undetected_chromedriver.patcher - INFO - patching driver executable /Users/chunwu/Library/Application Support/undetected_chromedriver/undetected_chromedriver
+2026-04-30 07:38:40,975 - undetected_chromedriver.patcher - INFO - patching driver executable /Users/chunwu/Library/Application Support/undetected_chromedriver/undetected_chromedriver
+2026-04-30 07:40:54,919 - undetected_chromedriver.patcher - INFO - patching driver executable /Users/chunwu/Library/Application Support/undetected_chromedriver/undetected_chromedriver
+2026-04-30 07:41:56,299 - undetected_chromedriver.patcher - INFO - patching driver executable /Users/chunwu/Library/Application Support/undetected_chromedriver/undetected_chromedriver
+2026-04-30 08:15:00,163 - apscheduler.executors.default - INFO - Running job "ShortBot.send_scheduled_report (trigger: cron[hour='8', minute='15'], next run at: 2026-05-01 08:15:00 CDT)" (scheduled at 2026-04-30 08:15:00-05:00)
+2026-04-30 08:15:00,165 - bot.handlers - INFO - 开始执行定时抓取任务...
+2026-04-30 08:15:01,290 - undetected_chromedriver.patcher - INFO - patching driver executable /Users/chunwu/Library/Application Support/undetected_chromedriver/undetected_chromedriver
+2026-04-30 08:15:21,091 - apscheduler.executors.default - INFO - Job "ShortBot.send_scheduled_report (trigger: cron[hour='8', minute='15'], next run at: 2026-05-01 08:15:00 CDT)" executed successfully
+2026-04-30 15:15:00,195 - apscheduler.executors.default - INFO - Running job "ShortBot.send_scheduled_report (trigger: cron[hour='15', minute='15'], next run at: 2026-05-01 15:15:00 CDT)" (scheduled at 2026-04-30 15:15:00-05:00)
+2026-04-30 15:15:00,197 - bot.handlers - INFO - 开始执行定时抓取任务...
+2026-04-30 15:15:01,450 - undetected_chromedriver.patcher - INFO - patching driver executable /Users/chunwu/Library/Application Support/undetected_chromedriver/undetected_chromedriver
+2026-04-30 15:15:22,094 - apscheduler.executors.default - INFO - Job "ShortBot.send_scheduled_report (trigger: cron[hour='15', minute='15'], next run at: 2026-05-01 15:15:00 CDT)" executed successfully
+2026-04-30 23:35:51,772 - undetected_chromedriver.patcher - INFO - patching driver executable /Users/chunwu/Library/Application Support/undetected_chromedriver/undetected_chromedriver
