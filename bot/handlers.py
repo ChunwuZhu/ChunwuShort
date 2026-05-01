@@ -73,12 +73,27 @@ class ShortBot:
         msg = f"{prefix}**{title}** ({datetime.now(self.tz).strftime('%H:%M')} CT)\n"
         lines = []
         for i, (_, row) in enumerate(df.iterrows(), 1):
-            full_sec = str(row.get('Security', 'Unknown'))
-            ticker = full_sec.split(' / ')[0].strip().upper()
-            if not ticker or ticker == 'UNKNOWN':
-                ticker = str(row.get('Symbol', 'N/A')).upper()
+            # --- 核心：多重兼容性 Ticker 提取逻辑 ---
+            # 1. 尝试从 Security 提取 (格式: "TICKER / Name")
+            full_sec = str(row.get('Security', ''))
+            ticker = 'UNKNOWN'
+            if ' / ' in full_sec:
+                ticker = full_sec.split(' / ')[0].strip().upper()
+            
+            # 2. 如果失败，尝试直接获取 Symbol 列
+            if ticker == 'UNKNOWN' or not ticker:
+                ticker = str(row.get('Symbol', '')).strip().upper()
+            
+            # 3. 如果还是失败，尝试获取 Ticker 列
+            if ticker == 'UNKNOWN' or not ticker:
+                ticker = str(row.get('Ticker', '')).strip().upper()
+                
+            # 4. 兜底处理
+            if not ticker or ticker == 'NAN': ticker = 'N/A'
+            
             google_link = f"https://www.google.com/finance/quote/{ticker}:NASDAQ"
             ticker_link = f"**[{ticker}]({google_link})**"
+            
             if is_sout:
                 t = str(row.get('Time', '--:--'))[:5]
                 p = row.get('Premium Paid ($)', 0)
@@ -87,17 +102,31 @@ class ShortBot:
                 else: ps = f"{p:.0f}"
                 sig = f"{float(pd.to_numeric(row.get('Premium Sigmas', 0), errors='coerce')):.1f}"
                 dtx = str(row.get('DTX', '0'))
+                
                 # 获取并格式化行权价
-                strike = str(row.get('Strike Price', 'N/A'))
-                try:
-                    strike_val = float(pd.to_numeric(strike, errors='coerce'))
-                    strike = f"{strike_val:g}" # 移除不必要的 .0
-                except: pass
+                strike_val = row.get('Strike Price')
+                if pd.isna(strike_val) or strike_val is None:
+                    strike = "N/A"
+                else:
+                    try:
+                        v = float(pd.to_numeric(strike_val, errors='coerce'))
+                        strike = f"${v:g}" # 加上 $ 符号
+                    except:
+                        strike = str(strike_val)
                 
                 lines.append(f"`{t}` {ticker_link} `{dtx}d` `{strike}` `{ps}` `s:{sig}`")
             else:
-                score = f"{float(pd.to_numeric(row.iloc[2], errors='coerce')):.1f}"
-                extra = f"{float(pd.to_numeric(row.iloc[3], errors='coerce')):.1f}%"
+                # 榜单模式下的数值提取
+                try:
+                    val_raw = row.iloc[2] # 评分或变化
+                    score = f"{float(pd.to_numeric(val_raw, errors='coerce')):.1f}"
+                except: score = "N/A"
+                
+                try:
+                    sec_raw = row.iloc[3] # 做空占比等
+                    extra = f"{float(pd.to_numeric(sec_raw, errors='coerce')):.1f}%"
+                except: extra = "N/A"
+                
                 lines.append(f"{i:02d}. {ticker_link} {score} | {extra}")
         return msg + "\n".join(lines)
 
