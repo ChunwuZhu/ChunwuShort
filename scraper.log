@@ -413,3 +413,20 @@ DETAIL:  Key (data_hash)=(cc2867d8b5c42ccbad8e14339dfe0fea) already exists.
 2026-05-01 01:29:10,109 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
 /opt/miniconda3/lib/python3.13/multiprocessing/resource_tracker.py:301: UserWarning: resource_tracker: There appear to be 1 leaked semaphore objects to clean up at shutdown: {'/mp-av7_kcib'}
   warnings.warn(
+2026-05-01 01:29:34,519 - ScraperService - INFO - 正在启动 Fintel 多标签浏览器...
+2026-05-01 01:29:35,850 - ScraperService - INFO - patching driver executable /Users/chunwu/Library/Application Support/undetected_chromedriver/undetected_chromedriver
+2026-05-01 01:29:44,590 - ScraperService - INFO - 标签页已就绪: https://fintel.io/sout
+2026-05-01 01:29:47,249 - ScraperService - INFO - 标签页已就绪: https://fintel.io/shortSqueeze
+2026-05-01 01:29:49,852 - ScraperService - INFO - 标签页已就绪: https://fintel.io/gammaSqueeze
+2026-05-01 01:29:54,418 - ScraperService - INFO - 标签页已就绪: https://fintel.io/sofStockLeaderboard
+2026-05-01 01:29:56,509 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
+2026-05-01 01:29:58,222 - ScraperService - INFO - 🔄 正在刷新并抓取: https://fintel.io/shortSqueeze
+2026-05-01 01:30:07,072 - ScraperService - INFO - ✅ [fintel_short_squeeze] 成功存入 250 条记录。
+2026-05-01 01:30:07,079 - ScraperService - INFO - 🔄 正在刷新并抓取: https://fintel.io/gammaSqueeze
+2026-05-01 01:30:15,931 - ScraperService - INFO - ✅ [fintel_gamma_squeeze] 成功存入 250 条记录。
+2026-05-01 01:30:15,941 - ScraperService - INFO - 🔄 正在刷新并抓取: https://fintel.io/sofStockLeaderboard
+2026-05-01 01:30:24,531 - ScraperService - INFO - ✅ [fintel_option_flow] 成功存入 738 条记录。
+2026-05-01 01:31:24,624 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
+2026-05-01 01:32:26,999 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
+/opt/miniconda3/lib/python3.13/multiprocessing/resource_tracker.py:301: UserWarning: resource_tracker: There appear to be 1 leaked semaphore objects to clean up at shutdown: {'/mp-ncq0mwc1'}
+  warnings.warn(
