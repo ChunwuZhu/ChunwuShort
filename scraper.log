@@ -1,0 +1,10 @@
+2026-04-30 23:56:22,749 - ScraperService - INFO - --- 开始新一轮抓取周期 ---
+2026-04-30 23:56:22,749 - ScraperService - INFO - 正在启动 Fintel 浏览器 (模式: 静默)...
+2026-04-30 23:56:23,891 - ScraperService - INFO - patching driver executable /Users/chunwu/Library/Application Support/undetected_chromedriver/undetected_chromedriver
+2026-04-30 23:56:32,527 - ScraperService - INFO - 📡 正在拉取数据: https://fintel.io/shortSqueeze
+2026-04-30 23:56:41,287 - ScraperService - INFO - ✅ 成功向 fintel_short_squeeze 插入 250 条数据。
+2026-04-30 23:56:41,287 - ScraperService - INFO - 📡 正在拉取数据: https://fintel.io/gammaSqueeze
+2026-04-30 23:56:49,812 - ScraperService - INFO - ✅ 成功向 fintel_gamma_squeeze 插入 250 条数据。
+2026-04-30 23:56:49,812 - ScraperService - INFO - 周期完成。等待 30 分钟...
+/opt/miniconda3/lib/python3.13/multiprocessing/resource_tracker.py:301: UserWarning: resource_tracker: There appear to be 1 leaked semaphore objects to clean up at shutdown: {'/mp-v79mz6n0'}
+  warnings.warn(

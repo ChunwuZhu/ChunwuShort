@@ -23,6 +23,7 @@ class FintelScraper:
         
         logger.info(f"正在启动 Fintel 浏览器 (模式: {'可见' if self.visible else '静默'})...")
         options = uc.ChromeOptions()
+        options.add_argument("--start-minimized")
         if self.visible:
             options.add_argument("--window-size=1280,1024")
             options.add_argument("--window-position=100,100")
