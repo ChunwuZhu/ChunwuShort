@@ -430,3 +430,43 @@ DETAIL:  Key (data_hash)=(cc2867d8b5c42ccbad8e14339dfe0fea) already exists.
 2026-05-01 01:32:26,999 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
 /opt/miniconda3/lib/python3.13/multiprocessing/resource_tracker.py:301: UserWarning: resource_tracker: There appear to be 1 leaked semaphore objects to clean up at shutdown: {'/mp-ncq0mwc1'}
   warnings.warn(
+2026-05-01 01:33:25,644 - ScraperService - INFO - 正在启动 Fintel 多标签浏览器...
+2026-05-01 01:33:26,806 - ScraperService - INFO - patching driver executable /Users/chunwu/Library/Application Support/undetected_chromedriver/undetected_chromedriver
+2026-05-01 01:33:35,292 - ScraperService - INFO - 标签页已就绪: https://fintel.io/sout
+2026-05-01 01:33:38,142 - ScraperService - INFO - 标签页已就绪: https://fintel.io/shortSqueeze
+2026-05-01 01:33:40,620 - ScraperService - INFO - 标签页已就绪: https://fintel.io/gammaSqueeze
+2026-05-01 01:33:43,041 - ScraperService - INFO - 标签页已就绪: https://fintel.io/sofStockLeaderboard
+2026-05-01 01:33:45,116 - ScraperService - INFO - 正在切换至标签页: https://fintel.io/sout
+2026-05-01 01:33:45,136 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
+2026-05-01 01:33:46,783 - ScraperService - INFO - 正在切换至标签页: https://fintel.io/shortSqueeze
+2026-05-01 01:33:46,786 - ScraperService - INFO - 🔄 正在刷新并抓取: https://fintel.io/shortSqueeze
+2026-05-01 01:33:55,721 - ScraperService - INFO - ✅ [fintel_short_squeeze] 成功存入 250 条记录。
+2026-05-01 01:33:55,721 - ScraperService - INFO - 正在切换至标签页: https://fintel.io/gammaSqueeze
+2026-05-01 01:33:55,729 - ScraperService - INFO - 🔄 正在刷新并抓取: https://fintel.io/gammaSqueeze
+2026-05-01 01:34:04,378 - ScraperService - INFO - ✅ [fintel_gamma_squeeze] 成功存入 250 条记录。
+2026-05-01 01:34:04,378 - ScraperService - INFO - 正在切换至标签页: https://fintel.io/sofStockLeaderboard
+2026-05-01 01:34:04,386 - ScraperService - INFO - 🔄 正在刷新并抓取: https://fintel.io/sofStockLeaderboard
+2026-05-01 01:34:15,554 - ScraperService - INFO - ✅ [fintel_option_flow] 成功存入 738 条记录。
+2026-05-01 01:35:15,630 - ScraperService - INFO - 正在切换至标签页: https://fintel.io/sout
+2026-05-01 01:35:15,653 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
+2026-05-01 01:36:17,277 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
+2026-05-01 01:37:18,566 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
+2026-05-01 01:38:19,831 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
+2026-05-01 01:39:21,082 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
+2026-05-01 01:40:22,315 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
+2026-05-01 01:41:23,564 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
+2026-05-01 01:42:24,813 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
+2026-05-01 01:43:26,072 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
+2026-05-01 01:44:27,277 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
+2026-05-01 01:45:28,779 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
+2026-05-01 01:46:30,175 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
+2026-05-01 01:47:31,595 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
+2026-05-01 01:48:33,000 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
+2026-05-01 01:49:34,411 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
+2026-05-01 01:50:35,833 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
+2026-05-01 01:51:37,321 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
+2026-05-01 01:52:38,740 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
+2026-05-01 01:53:40,157 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
+2026-05-01 01:54:41,620 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
+2026-05-01 01:55:43,128 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout
+2026-05-01 01:56:44,357 - ScraperService - INFO - ⚡️ 正在提取实时流数据: https://fintel.io/sout

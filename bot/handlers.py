@@ -1,7 +1,7 @@
 import logging
 import asyncio
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, timedelta
 from telethon import TelegramClient, events, Button
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from pytz import timezone
@@ -15,7 +15,8 @@ class ShortBot:
     def __init__(self):
         self.client = TelegramClient(config.SESSION_NAME, config.API_ID, config.API_HASH)
         self.scheduler = AsyncIOScheduler()
-        self.tz = timezone('US/Central')
+        self.tz_ct = timezone('US/Central')
+        self.tz_et = timezone('US/Eastern')
 
     def get_latest_data(self, model_class):
         db = SessionLocal()
@@ -64,42 +65,39 @@ class ShortBot:
         finally:
             db.close()
 
+    def convert_et_to_ct(self, time_str):
+        """将 NYC (ET) 时间转换为 CT"""
+        try:
+            # 假设日期是今天，我们只需要转换时间
+            et_time = datetime.strptime(time_str[:5], "%H:%M")
+            # ET 比 CT 早一小时，所以 CT = ET - 1
+            ct_time = et_time - timedelta(hours=1)
+            return ct_time.strftime("%H:%M")
+        except:
+            return time_str[:5]
+
     def format_compact_message(self, df, mode='top', is_scheduled=False):
         if df is None or df.empty: return "❌ 暂无数据"
         is_sout = mode.startswith('sout_')
         mapping = {'sout_bc': 'BUY CALL', 'sout_bp': 'BUY PUT', 'sout_sc': 'SELL CALL', 'sout_sp': 'SELL PUT'}
         title = mapping.get(mode, "Fintel 榜单") if is_sout else "Fintel 榜单"
         prefix = "📢 **[定时]** " if is_scheduled else "🔥 "
-        msg = f"{prefix}**{title}** ({datetime.now(self.tz).strftime('%H:%M')} CT)\n"
+        msg = f"{prefix}**{title}** ({datetime.now(self.tz_ct).strftime('%H:%M')} CT)\n"
         lines = []
         for i, (_, row) in enumerate(df.iterrows(), 1):
-            # --- 极致兼容的 Ticker 提取逻辑 ---
-            full_sec = str(row.get('Security', '')).strip()
-            symbol_col = str(row.get('Symbol', '')).strip()
-            ticker_col = str(row.get('Ticker', '')).strip()
-            
-            ticker = 'N/A'
-            # 优先级 1: "TICKER / Name" 格式
-            if ' / ' in full_sec:
-                ticker = full_sec.split(' / ')[0].strip().upper()
-            # 优先级 2: 直接是 Ticker 的 Security 列
-            elif full_sec and len(full_sec) <= 10 and full_sec.isalnum():
-                ticker = full_sec.upper()
-            # 优先级 3: Symbol 列
-            elif symbol_col and symbol_col != 'nan':
-                ticker = symbol_col.upper()
-            # 优先级 4: Ticker 列
-            elif ticker_col and ticker_col != 'nan':
-                ticker = ticker_col.upper()
-            
-            # 移除任何可能的 .NASDAQ 后缀
-            ticker = ticker.split(':')[0]
+            full_sec = str(row.get('Security', ''))
+            ticker = full_sec.split(' / ')[0].strip().upper()
+            if not ticker or ticker == 'UNKNOWN' or ' / ' not in full_sec:
+                ticker = str(row.get('Symbol', row.get('Ticker', 'N/A'))).strip().upper().split(':')[0]
             
             google_link = f"https://www.google.com/finance/quote/{ticker}:NASDAQ"
             ticker_link = f"**[{ticker}]({google_link})**"
             
             if is_sout:
-                t = str(row.get('Time', '--:--'))[:5]
+                # 转换时间从 ET 到 CT
+                t_et = str(row.get('Time', '--:--'))
+                t_ct = self.convert_et_to_ct(t_et)
+                
                 p = row.get('Premium Paid ($)', 0)
                 if abs(p) >= 1000000: ps = f"{p/1000000:.1f}M"
                 elif abs(p) >= 1000: ps = f"{p/1000:.0f}K"
@@ -107,7 +105,6 @@ class ShortBot:
                 sig = f"{float(pd.to_numeric(row.get('Premium Sigmas', 0), errors='coerce')):.1f}"
                 dtx = str(row.get('DTX', '0'))
                 
-                # 行权价格式化 (加 $)
                 strike_val = row.get('Strike Price')
                 try:
                     s_v = float(pd.to_numeric(strike_val, errors='coerce'))
@@ -115,28 +112,20 @@ class ShortBot:
                 except:
                     strike = f"${strike_val}" if strike_val else "N/A"
                 
-                lines.append(f"`{t}` {ticker_link} `{dtx}d` `{strike}` `{ps}` `s:{sig}`")
+                lines.append(f"`{t_ct}` {ticker_link} `{dtx}d` `{strike}` `{ps}` `s:{sig}`")
             else:
-                # 针对 Top 榜单的数据提取 (使用列名而不是 index 以保安全)
                 score_key = 'Short Squeeze Score' if 'Short Squeeze Score' in df.columns else 'Gamma Squeeze Score'
                 if score_key not in df.columns and len(df.columns) > 2: score_key = df.columns[2]
-                
                 extra_key = 'Short Float' if 'Short Float' in df.columns else 'Put/Call Ratio'
                 if extra_key not in df.columns and len(df.columns) > 3: extra_key = df.columns[3]
                 
                 try: score = f"{float(pd.to_numeric(row.get(score_key, 0), errors='coerce')):.1f}"
                 except: score = "0.0"
-                
                 try: extra = f"{float(pd.to_numeric(row.get(extra_key, 0), errors='coerce')):.1f}%"
                 except: extra = "0.0%"
                 
                 lines.append(f"{i:02d}. {ticker_link} {score} | {extra}")
         return msg + "\n".join(lines)
-
-    async def send_scheduled_report(self):
-        df = self.get_latest_data(ShortSqueeze)
-        if df is not None:
-            await self.client.send_message(config.TARGET_GROUP_ID, self.format_compact_message(df, mode='top', is_scheduled=True))
 
     async def start(self):
         await self.client.start(bot_token=config.TELEGRAM_BOT_TOKEN)
@@ -170,35 +159,47 @@ class ShortBot:
         @self.client.on(events.NewMessage(pattern=r'(?i)/(bc|bp|sc|sp)(3m5s|3m)?'))
         async def handle_sout(event):
             base_cmd = event.pattern_match.group(1).lower()
-            suffix = event.pattern_match.group(2)
+            suffix = event.pattern_match.group(2) or ""
             side_map = {'bc': ('BUY', 'CALL'), 'bp': ('BUY', 'PUT'), 'sc': ('SELL', 'CALL'), 'sp': ('SELL', 'PUT')}
             side, contract = side_map[base_cmd]
-            dtx_limit = 100 if suffix in ['3m', '3m5s'] else None
-            sigma_min = 5.0 if suffix == '3m5s' else None
+            dtx_limit = 100 if '3m' in suffix else None
+            sigma_min = 5.0 if '5s' in suffix else None
             df = self.get_filtered_sout(side, contract, limit=30, offset=0, dtx_limit=dtx_limit, sigma_min=sigma_min)
-            await event.respond(self.format_compact_message(df, mode=f'sout_{base_cmd}'), buttons=[Button.inline("更多 ⬇️", f"more_{base_cmd}{suffix if suffix else ''}_30".encode())])
+            
+            buttons = [Button.inline("下一页 ⬇️", f"page_{base_cmd}{suffix}_30".encode())]
+            await event.respond(self.format_compact_message(df, mode=f'sout_{base_cmd}'), buttons=buttons)
 
-        @self.client.on(events.CallbackQuery(pattern=r'more_(\w+)_(\d+)'))
-        async def handle_more(event):
-            cmd_raw = event.pattern_match.group(1).decode()
-            offset = int(event.pattern_match.group(2).decode())
+        @self.client.on(events.CallbackQuery(pattern=r'page_(\w+)_(\d+)'))
+        async def handle_pagination(event):
+            cmd_raw = event.data.decode().split('_')[1]
+            offset = int(event.data.decode().split('_')[2])
+            
             suffix = ""
             if '3m5s' in cmd_raw: suffix = '3m5s'
             elif '3m' in cmd_raw: suffix = '3m'
             base_cmd = cmd_raw.replace(suffix, '')
+            
             side_map = {'bc': ('BUY', 'CALL'), 'bp': ('BUY', 'PUT'), 'sc': ('SELL', 'CALL'), 'sp': ('SELL', 'PUT')}
             side, contract = side_map[base_cmd]
-            dtx_limit = 100 if suffix in ['3m', '3m5s'] else None
-            sigma_min = 5.0 if suffix == '3m5s' else None
+            dtx_limit = 100 if '3m' in suffix else None
+            sigma_min = 5.0 if '5s' in suffix else None
+            
             df = self.get_filtered_sout(side, contract, limit=30, offset=offset, dtx_limit=dtx_limit, sigma_min=sigma_min)
+            
             if df is None or df.empty:
                 await event.answer("没有更多数据了", alert=True)
                 return
-            await event.respond(self.format_compact_message(df, mode=f'sout_{base_cmd}'), buttons=[Button.inline("更多 ⬇️", f"more_{cmd_raw}_{offset+30}".encode())])
+
+            buttons = []
+            row = []
+            if offset >= 30:
+                row.append(Button.inline("上一页 ⬆️", f"page_{cmd_raw}_{max(0, offset-30)}".encode()))
+            row.append(Button.inline("下一页 ⬇️", f"page_{cmd_raw}_{offset+30}".encode()))
+            buttons.append(row)
+            
+            await event.edit(self.format_compact_message(df, mode=f'sout_{base_cmd}'), buttons=buttons)
             await event.answer()
 
-        @self.client.on(events.NewMessage(pattern=r'(?i)/start$'))
-        async def handle_start(event): await event.respond("欢迎！输入 `1` 查看指令菜单。")
         @self.client.on(events.NewMessage(pattern=r'^\?(\w+)'))
         async def handle_quick_link(event):
             ticker = event.pattern_match.group(1).upper()
