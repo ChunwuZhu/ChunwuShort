@@ -87,6 +87,40 @@ class FintelScraper:
         if pd.isna(val): return "Unknown"
         return str(val).split('  ')[0].strip()
 
+    def scrape_from_tab_no_refresh(self, url):
+        """仅读取当前标签页内容，不进行刷新（适用于实时推流页面）"""
+        if not self.driver or url not in self.tab_map:
+            return None
+            
+        try:
+            self.driver.switch_to.window(self.tab_map[url])
+            logger.info(f"⚡️ 正在提取实时流数据: {url}")
+            
+            # 直接获取当前源码，不等待刷新
+            html = self.driver.page_source
+            tables = pd.read_html(StringIO(html))
+            
+            if tables:
+                df = None
+                target_col = None
+                for t in tables:
+                    for col in ['Ticker', 'Symbol', 'Security', 'symbol', 'ticker']:
+                        if col in t.columns:
+                            df = t.copy()
+                            target_col = col
+                            break
+                    if df is not None: break
+                
+                if df is not None:
+                    if target_col != 'Security':
+                        df['Security'] = df[target_col]
+                    df['Security'] = df['Security'].apply(self._clean_security_name)
+                    return df
+            return None
+        except Exception as e:
+            logger.error(f"实时流提取失败 ({url}): {e}")
+            return None
+
     def scrape_from_tab(self, url):
         """切换到对应的标签页，刷新并抓取数据"""
         if not self.driver or url not in self.tab_map:
@@ -94,34 +128,37 @@ class FintelScraper:
             return None
             
         try:
-            # 切换到指定句柄
             self.driver.switch_to.window(self.tab_map[url])
             logger.info(f"🔄 正在刷新并抓取: {url}")
             
-            # 刷新页面以获取最新数据
             self.driver.refresh()
-            
             wait = WebDriverWait(self.driver, 30)
             wait.until(EC.presence_of_element_located((By.TAG_NAME, "table")))
-            time.sleep(8) # 渲染缓冲
+            time.sleep(8) 
             
             html = self.driver.page_source
             tables = pd.read_html(StringIO(html))
             
             if tables:
                 df = None
+                target_col = None
+                # 寻找包含 Ticker 信息的列
                 for t in tables:
-                    if any(col in t.columns for col in ['Ticker', 'Symbol', 'Security']):
-                        df = t
-                        break
-                if df is None: df = tables[0]
+                    for col in ['Ticker', 'Symbol', 'Security', 'symbol', 'ticker']:
+                        if col in t.columns:
+                            df = t.copy()
+                            target_col = col
+                            break
+                    if df is not None: break
                 
-                df_cleaned = df.copy()
-                df_cleaned['Security'] = df_cleaned['Security'].apply(self._clean_security_name)
-                return df_cleaned
+                if df is not None:
+                    # 统一将 Ticker 列转换为名为 'Security' 的格式，方便后续处理
+                    if target_col != 'Security':
+                        df['Security'] = df[target_col]
+                    
+                    df['Security'] = df['Security'].apply(self._clean_security_name)
+                    return df
             return None
         except Exception as e:
             logger.error(f"标签页抓取失败 ({url}): {e}")
-            # 如果发生错误（如标签页关闭），尝试重置
-            self.stop_browser()
             return None

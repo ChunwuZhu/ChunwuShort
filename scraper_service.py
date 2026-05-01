@@ -21,10 +21,15 @@ def get_row_hash(row_dict):
     s = json.dumps(core_data, sort_keys=True)
     return hashlib.md5(s.encode('utf-8')).hexdigest()
 
+import numpy as np
+
 def save_to_db(df, model_class):
     """通用持久化逻辑"""
     if df is None or df.empty:
         return
+
+    # 预处理：将所有 NaN 替换为 None，确保 JSONB 序列化成功
+    df = df.replace({np.nan: None})
 
     db = SessionLocal()
     try:
@@ -34,6 +39,9 @@ def save_to_db(df, model_class):
         if model_class == FintelSout:
             for _, row in df.iterrows():
                 row_dict = row.to_dict()
+                # 再次确保字典内的值也是干净的
+                row_dict = {k: (None if pd.isna(v) else v) for k, v in row_dict.items()}
+                
                 ticker = str(row.get('Security', 'Unknown')).split(' / ')[0].strip().upper()
                 current_hash = get_row_hash(row_dict)
                 last_record = db.query(FintelSout).filter(FintelSout.ticker == ticker).order_by(desc(FintelSout.scraped_at)).first()
@@ -105,10 +113,10 @@ def main_loop():
             if not scraper.driver:
                 scraper.start_browser(urls)
             
-            # 1. 每分钟抓取 sout
-            save_to_db(scraper.scrape_from_tab(urls[0]), FintelSout)
+            # 1. 每分钟抓取 sout (使用无刷新模式，利用页面的实时推流)
+            save_to_db(scraper.scrape_from_tab_no_refresh(urls[0]), FintelSout)
             
-            # 2. 每 30 分钟抓取周期
+            # 2. 每 30 分钟抓取周期 (执行全量刷新)
             if tick % 30 == 0:
                 save_to_db(scraper.scrape_from_tab(urls[1]), ShortSqueeze)
                 save_to_db(scraper.scrape_from_tab(urls[2]), GammaSqueeze)

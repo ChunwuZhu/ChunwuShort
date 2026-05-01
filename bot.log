@@ -293,3 +293,12 @@
 2026-05-01 00:08:23,220 - apscheduler.scheduler - INFO - Added job "ShortBot.send_scheduled_report" to job store "default"
 2026-05-01 00:08:23,221 - apscheduler.scheduler - INFO - Added job "ShortBot.send_scheduled_report" to job store "default"
 2026-05-01 00:08:23,221 - apscheduler.scheduler - INFO - Scheduler started
+2026-05-01 00:15:01,205 - Main - INFO - 系统正在初始化服务...
+2026-05-01 00:15:01,216 - telethon.network.mtprotosender - INFO - Connecting to 149.154.175.57:443/TcpFull...
+2026-05-01 00:15:01,284 - telethon.network.mtprotosender - INFO - Connection to 149.154.175.57:443/TcpFull complete!
+2026-05-01 00:15:01,808 - bot.handlers - INFO - 🤖 ShortChunwuBot 已在线
+2026-05-01 00:15:01,815 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-05-01 00:15:01,816 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-05-01 00:15:01,817 - apscheduler.scheduler - INFO - Added job "ShortBot.send_scheduled_report" to job store "default"
+2026-05-01 00:15:01,817 - apscheduler.scheduler - INFO - Added job "ShortBot.send_scheduled_report" to job store "default"
+2026-05-01 00:15:01,817 - apscheduler.scheduler - INFO - Scheduler started
