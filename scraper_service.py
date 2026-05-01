@@ -3,6 +3,7 @@ import logging
 import pandas as pd
 import hashlib
 import json
+import numpy as np
 from datetime import datetime
 from scraper.fintel import FintelScraper
 from utils.db import SessionLocal, ShortSqueeze, GammaSqueeze, FintelSout, OptionFlow
@@ -17,11 +18,10 @@ logger = logging.getLogger(__name__)
 
 def get_row_hash(row_dict):
     """计算行数据的 MD5 哈希用于去重"""
+    # 移除可能变动的 rank 或 timestamp 相关字段，仅对核心业务数据求哈希
     core_data = {k: v for k, v in row_dict.items() if k not in ['Rank', 'scraped_at', 'Δ']}
     s = json.dumps(core_data, sort_keys=True)
     return hashlib.md5(s.encode('utf-8')).hexdigest()
-
-import numpy as np
 
 def save_to_db(df, model_class):
     """通用持久化逻辑"""
@@ -39,9 +39,7 @@ def save_to_db(df, model_class):
         if model_class == FintelSout:
             for _, row in df.iterrows():
                 row_dict = row.to_dict()
-                # 再次确保字典内的值也是干净的
                 row_dict = {k: (None if pd.isna(v) else v) for k, v in row_dict.items()}
-                
                 ticker = str(row.get('Security', 'Unknown')).split(' / ')[0].strip().upper()
                 current_hash = get_row_hash(row_dict)
                 last_record = db.query(FintelSout).filter(FintelSout.ticker == ticker).order_by(desc(FintelSout.scraped_at)).first()
@@ -90,7 +88,7 @@ def save_to_db(df, model_class):
         if records:
             db.bulk_save_objects(records)
             db.commit()
-            logger.info(f"✅ [{model_class.__tablename__}] 插入 {len(records)} 条记录。")
+            logger.info(f"✅ [{model_class.__tablename__}] 插入 {len(records)} 条新记录。")
             
     except Exception as e:
         db.rollback()
@@ -101,7 +99,7 @@ def save_to_db(df, model_class):
 def main_loop():
     scraper = FintelScraper(visible=False)
     urls = [
-        "https://fintel.io/sout",           # 0: Live (1 min)
+        "https://fintel.io/sout",           # 0: Unusual Trades (1 min)
         "https://fintel.io/shortSqueeze",   # 1: Short (30 mins)
         "https://fintel.io/gammaSqueeze",   # 2: Gamma (30 mins)
         "https://fintel.io/sofStockLeaderboard" # 3: Option Flow (30 mins)
@@ -113,21 +111,28 @@ def main_loop():
             if not scraper.driver:
                 scraper.start_browser(urls)
             
-            # 1. 每分钟抓取 sout (使用无刷新模式，利用页面的实时推流)
-            save_to_db(scraper.scrape_from_tab_no_refresh(urls[0]), FintelSout)
+            # --- 1. 高频任务 (每 1 分钟) ---
+            logger.info(f"⏱ [Tick {tick}] 执行高频实时抓取: Unusual Trades (/sout)")
+            sout_df = scraper.scrape_from_tab_no_refresh(urls[0])
+            save_to_db(sout_df, FintelSout)
             
-            # 2. 每 30 分钟抓取周期 (执行全量刷新)
+            # --- 2. 低频任务 (每 30 分钟) ---
             if tick % 30 == 0:
+                logger.info(f"📅 [Tick {tick}] 执行低频全量更新: Short / Gamma / Option Flow")
+                
+                # 抓取并保存三个榜单
                 save_to_db(scraper.scrape_from_tab(urls[1]), ShortSqueeze)
                 save_to_db(scraper.scrape_from_tab(urls[2]), GammaSqueeze)
                 save_to_db(scraper.scrape_from_tab(urls[3]), OptionFlow)
+                
+                logger.info("✅ 低频全量更新完成。")
             
             tick += 1
-            if tick >= 600:
+            if tick >= 600: # 约 10 小时重启一次浏览器释放内存
+                logger.info("♻️ 周期性回收浏览器资源...")
                 scraper.stop_browser()
                 tick = 0
                 
-            logger.info(f"Tick {tick} 完成。")
             time.sleep(60)
             
         except Exception as e:
