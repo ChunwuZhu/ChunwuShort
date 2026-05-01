@@ -6,7 +6,7 @@ from telethon import TelegramClient, events
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from pytz import timezone
 from utils.config import config
-from utils.db import SessionLocal, ShortSqueeze, GammaSqueeze
+from utils.db import SessionLocal, ShortSqueeze, GammaSqueeze, FintelSout
 from sqlalchemy import func
 
 logger = logging.getLogger(__name__)
@@ -27,7 +27,7 @@ class ShortBot:
                 return None
             
             # 查询该时间戳下的所有记录
-            results = db.query(model_class).filter(model_class.scraped_at == latest_time).order_by(model_class.rank.asc()).all()
+            results = db.query(model_class).filter(model_class.scraped_at == latest_time).order_by(model_class.id.asc()).all()
             
             # 转换为 DataFrame
             data = []
@@ -38,18 +38,21 @@ class ShortBot:
                         'Security': r.security_name,
                         'Short Squeeze Score': float(r.score or 0),
                         'Short Float': float(r.short_float_pct or 0),
-                        'SI Change': float(r.si_change_1m_pct or 0),
-                        'Borrow Fee Rate': float(r.borrow_fee_rate or 0)
+                        'SI Change': float(r.si_change_1m_pct or 0)
                     })
-                else: # GammaSqueeze
+                elif model_class == GammaSqueeze:
                     data.append({
                         'Rank': r.rank,
                         'Security': r.security_name,
                         'Gamma Squeeze Score': float(r.score or 0),
                         'GEX ($MM)': float(r.gex_mm or 0),
-                        'Put/Call Ratio': float(r.put_call_ratio or 0),
-                        'Price Momo (1w %)': float(r.price_momo_1w_pct or 0)
+                        'Put/Call Ratio': float(r.put_call_ratio or 0)
                     })
+                elif model_class == FintelSout:
+                    # 对于 JSONB 存储的 SOUT，动态展开 metrics
+                    row = dict(r.metrics)
+                    row['Security'] = r.security_name
+                    data.append(row)
             return pd.DataFrame(data)
         finally:
             db.close()
@@ -58,26 +61,39 @@ class ShortBot:
         if df is None or df.empty:
             return "❌ 数据库中暂无数据。请确保抓取服务已启动。"
 
-        # 2. 标题和排序逻辑
+        # 识别列名
+        score_col = None
+        for c in ['Short Squeeze Score', 'Gamma Squeeze Score', 'Net Premium', 'NetPremium', 'Short Volume']:
+            if c in df.columns:
+                score_col = c
+                break
+        if not score_col: score_col = df.columns[min(len(df.columns)-1, 2)]
+
+        # 排序逻辑
         is_gamma = mode in ['topg', 'changeg']
+        is_sout = mode == 'sout'
         
         if mode == 'top':
             title, metric_label, display_col, unit = "Fintel 做空挤压榜 Top 30", "评分", "Short Squeeze Score", ""
-            sec_label = "做空"
-            sec_col = "Short Float"
+            sec_label, sec_col = "做空", "Short Float"
         elif mode == 'change':
             title, metric_label, display_col, unit = "做空增幅榜 (SI Change) Top 30", "变化", "SI Change", "%"
-            sec_label = "做空"
-            sec_col = "Short Float"
+            sec_label, sec_col = "做空", "Short Float"
         elif mode == 'topg':
             title, metric_label, display_col, unit = "Gamma Squeeze 榜 Top 30", "评分", "Gamma Squeeze Score", ""
             sec_label = "GEX/PCR"
         elif mode == 'changeg':
-            title, metric_label, display_col, unit = "Gamma 增幅榜 Top 30", "变化", "Price Momo (1w %)", "%"
+            title, metric_label, display_col, unit = "Gamma 增幅榜 Top 30", "变化", "Gamma Squeeze Score", "%"
             sec_label = "GEX/PCR"
+        elif mode == 'sout':
+            title, metric_label, display_col, unit = "Short Sale Volume (SOUT) 最新", "指标", score_col, ""
+            sec_label = "详情"
 
-        # 重新排序
-        df_sorted = df.sort_values(by=display_col, ascending=False).head(30)
+        # 重新排序并切片
+        if is_sout:
+            df_sorted = df.head(30)
+        else:
+            df_sorted = df.sort_values(by=display_col, ascending=False).head(30)
 
         prefix = "📢 **[定时推送]** " if is_scheduled else "🔥 "
         msg = f"{prefix}**{title}**\n"
@@ -91,15 +107,30 @@ class ShortBot:
             rank = f"{i:02d}"
             ticker = str(row.get('Security', 'Unknown')).split(' / ')[0].strip().upper()
             
-            val_str = f"{float(row.get(display_col, 0)):>5.1f}{unit}"
+            # 主数值格式化
+            try:
+                raw_val = float(pd.to_numeric(row.get(display_col, 0), errors='coerce'))
+                val_str = f"{raw_val:>5.1f}{unit}"
+            except:
+                val_str = str(row.get(display_col, 'N/A'))[:5].ljust(5)
 
+            # 次要指标格式化
             if is_gamma:
-                gex = float(row.get('GEX ($MM)', 0))
-                pcr = float(row.get('Put/Call Ratio', 0))
-                sec_display = f"{gex:>3.0f}/{pcr:.1f}"
+                try:
+                    gex = float(pd.to_numeric(row.get('GEX ($MM)', 0), errors='coerce'))
+                    pcr = float(pd.to_numeric(row.get('Put/Call Ratio', 0), errors='coerce'))
+                    sec_display = f"{gex:>3.0f}/{pcr:.1f}"
+                except:
+                    sec_display = " N/A "
+            elif is_sout:
+                vol_col = [c for c in df.columns if 'Volume' in str(c)]
+                sec_display = str(row.get(vol_col[0] if vol_col else df.columns[-1], 'N/A'))[:8]
             else:
-                s_float = float(row.get(sec_col, 0))
-                sec_display = f"{s_float:>5.1f}%"
+                try:
+                    s_float = float(pd.to_numeric(row.get(sec_col, 0), errors='coerce'))
+                    sec_display = f"{s_float:>5.1f}%"
+                except:
+                    sec_display = " N/A "
             
             google_link = f"https://www.google.com/finance/quote/{ticker}:NASDAQ"
             msg += f"`{rank} | `[{ticker.ljust(6)}]({google_link})` | {val_str.ljust(4)} | {sec_display}` \n"
@@ -143,6 +174,11 @@ class ShortBot:
             df = self.get_latest_data(GammaSqueeze)
             await event.respond(self.format_message(df, mode='changeg'))
 
+        @self.client.on(events.NewMessage(pattern=r'(?i)/sout$'))
+        async def handle_sout(event):
+            df = self.get_latest_data(FintelSout)
+            await event.respond(self.format_message(df, mode='sout'))
+
         @self.client.on(events.NewMessage(pattern=r'(?i)/start$'))
         async def handle_start(event):
             await event.respond("欢迎使用 ShortChunwuBot！\n输入 `1` 查看所有可用指令。")
@@ -154,6 +190,7 @@ class ShortBot:
                 "───|────────|──────\n"
                 "📊 **Short:**  /top | /change\n"
                 "📈 **Gamma:** /topg | /changeg\n"
+                "🔥 **Live:**  /sout (1min更新)\n"
                 "🔍 **Quick:** `?代码` (例: `?TSLA`)\n"
                 "───|────────|──────\n"
                 "⏰ 08:15 & 15:15 CT 自动推送"

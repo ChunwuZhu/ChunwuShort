@@ -44,12 +44,10 @@ class FintelScraper:
                     self.driver.get(url)
                     self.tab_map[url] = self.driver.current_window_handle
                 else:
-                    # 打开新标签页
-                    self.driver.execute_script(f"window.open('{url}', '_blank');")
-                    # 切换到新打开的标签页并保存句柄
-                    new_handle = self.driver.window_handles[-1]
-                    self.driver.switch_to.window(new_handle)
-                    self.tab_map[url] = new_handle
+                    # 使用 Selenium 4 的新窗口/标签页功能
+                    self.driver.switch_to.new_window('tab')
+                    self.driver.get(url)
+                    self.tab_map[url] = self.driver.current_window_handle
                 
                 logger.info(f"标签页已就绪: {url}")
                 time.sleep(2)

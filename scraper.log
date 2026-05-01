@@ -18,3 +18,27 @@
 2026-04-30 23:58:24,089 - ScraperService - INFO - 周期完成。等待 30 分钟...
 /opt/miniconda3/lib/python3.13/multiprocessing/resource_tracker.py:301: UserWarning: resource_tracker: There appear to be 1 leaked semaphore objects to clean up at shutdown: {'/mp-np9bil86'}
   warnings.warn(
+2026-04-30 23:59:50,518 - ScraperService - INFO - --- 开始新一轮抓取周期 (多标签模式) ---
+2026-04-30 23:59:50,518 - ScraperService - INFO - 正在启动 Fintel 多标签浏览器...
+2026-04-30 23:59:51,727 - ScraperService - INFO - patching driver executable /Users/chunwu/Library/Application Support/undetected_chromedriver/undetected_chromedriver
+2026-04-30 23:59:59,939 - ScraperService - INFO - 标签页已就绪: https://fintel.io/shortSqueeze
+2026-05-01 00:00:01,980 - ScraperService - INFO - 标签页已就绪: https://fintel.io/gammaSqueeze
+2026-05-01 00:00:04,118 - ScraperService - INFO - 🔄 正在刷新并抓取: https://fintel.io/shortSqueeze
+2026-05-01 00:00:12,965 - ScraperService - INFO - ✅ 成功向 fintel_short_squeeze 插入 250 条数据。
+2026-05-01 00:00:12,976 - ScraperService - INFO - 🔄 正在刷新并抓取: https://fintel.io/gammaSqueeze
+2026-05-01 00:00:21,787 - ScraperService - INFO - ✅ 成功向 fintel_gamma_squeeze 插入 250 条数据。
+2026-05-01 00:00:21,787 - ScraperService - INFO - 周期完成。等待 30 分钟...
+/opt/miniconda3/lib/python3.13/multiprocessing/resource_tracker.py:301: UserWarning: resource_tracker: There appear to be 1 leaked semaphore objects to clean up at shutdown: {'/mp-ockxnaj1'}
+  warnings.warn(
+2026-05-01 00:00:57,686 - ScraperService - INFO - --- 开始新一轮抓取周期 (多标签模式) ---
+2026-05-01 00:00:57,686 - ScraperService - INFO - 正在启动 Fintel 多标签浏览器...
+2026-05-01 00:00:58,771 - ScraperService - INFO - patching driver executable /Users/chunwu/Library/Application Support/undetected_chromedriver/undetected_chromedriver
+2026-05-01 00:01:07,028 - ScraperService - INFO - 标签页已就绪: https://fintel.io/shortSqueeze
+2026-05-01 00:01:09,547 - ScraperService - INFO - 标签页已就绪: https://fintel.io/gammaSqueeze
+2026-05-01 00:01:11,655 - ScraperService - INFO - 🔄 正在刷新并抓取: https://fintel.io/shortSqueeze
+2026-05-01 00:01:20,353 - ScraperService - INFO - ✅ 成功向 fintel_short_squeeze 插入 250 条数据。
+2026-05-01 00:01:20,360 - ScraperService - INFO - 🔄 正在刷新并抓取: https://fintel.io/gammaSqueeze
+2026-05-01 00:01:28,951 - ScraperService - INFO - ✅ 成功向 fintel_gamma_squeeze 插入 250 条数据。
+2026-05-01 00:01:28,952 - ScraperService - INFO - 周期完成。等待 30 分钟...
+/opt/miniconda3/lib/python3.13/multiprocessing/resource_tracker.py:301: UserWarning: resource_tracker: There appear to be 1 leaked semaphore objects to clean up at shutdown: {'/mp-k6i0wpd7'}
+  warnings.warn(
