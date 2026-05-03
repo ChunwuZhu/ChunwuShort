@@ -5,6 +5,7 @@ import hashlib
 import json
 import numpy as np
 from datetime import datetime
+from pytz import timezone
 from scraper.fintel import FintelScraper
 from utils.db import SessionLocal, ShortSqueeze, GammaSqueeze, FintelSout, OptionFlow
 from sqlalchemy import desc
@@ -46,17 +47,13 @@ def save_to_db(df, model_class):
         count = 0
         
         if model_class == FintelSout:
-            # 1. 获取当前数据库中已有的所有哈希（为了效率，仅限当天的）
-            # 或者简单点，我们直接利用 ON CONFLICT (已经在 DB 层级做了唯一约束)
-            # 为了避免 rollback 导致 Session 丢失，我们使用 begin_nested()
-            
             for _, row in df.iterrows():
                 row_dict = clean_dict(row.to_dict())
                 ticker = str(row_dict.get('Symbol', 'Unknown')).strip().upper()
                 current_hash = get_row_hash(row_dict)
                 
                 try:
-                    with db.begin_nested(): # 使用 Savepoint
+                    with db.begin_nested():
                         record = FintelSout(
                             scraped_at=scraped_at,
                             ticker=ticker,
@@ -67,13 +64,11 @@ def save_to_db(df, model_class):
                         db.add(record)
                     count += 1
                 except IntegrityError:
-                    # 捕获唯一性冲突，不做处理，继续下一条
                     continue
                 except Exception as row_e:
                     logger.error(f"处理单行 SOUT 失败: {row_e}")
                     continue
         else:
-            # Short / Gamma / Option Flow 逻辑不变 (它们通常全量覆盖，不走唯一哈希)
             records = []
             for _, row in df.iterrows():
                 if model_class == ShortSqueeze:
@@ -119,6 +114,15 @@ def save_to_db(df, model_class):
     finally:
         db.close()
 
+def is_market_hours():
+    """判断当前是否在交易时间内 (周一至周五 08:00 - 15:30 CT)"""
+    tz = timezone('US/Central')
+    now = datetime.now(tz)
+    if now.weekday() >= 5: return False
+    start_time = now.replace(hour=8, minute=0, second=0, microsecond=0)
+    end_time = now.replace(hour=15, minute=30, second=0, microsecond=0)
+    return start_time <= now <= end_time
+
 def main_loop():
     scraper = FintelScraper(visible=False)
     urls = [
@@ -131,19 +135,32 @@ def main_loop():
     tick = 0
     while True:
         try:
+            if not is_market_hours():
+                if tick % 60 == 0:
+                    logger.info("非交易时段 (08:00-15:30 CT, Mon-Fri)，采集器静默休眠...")
+                if scraper.driver:
+                    scraper.stop_browser()
+                time.sleep(60)
+                tick += 1
+                continue
+
             if not scraper.driver:
                 scraper.start_browser(urls)
             
-            # 每一分钟抓取一次
+            # 高频抓取 (1 min)
             save_to_db(scraper.scrape_from_tab_no_refresh(urls[0]), FintelSout)
             
+            # 低频刷新 (30 mins)
             if tick % 30 == 0:
+                logger.info(f"📅 [Tick {tick}] 执行低频全量更新...")
                 save_to_db(scraper.scrape_from_tab(urls[1]), ShortSqueeze)
                 save_to_db(scraper.scrape_from_tab(urls[2]), GammaSqueeze)
                 save_to_db(scraper.scrape_from_tab(urls[3]), OptionFlow)
+                logger.info("✅ 低频全量更新完成。")
             
             tick += 1
             if tick >= 600:
+                logger.info("♻️ 周期性回收浏览器资源...")
                 scraper.stop_browser()
                 tick = 0
                 

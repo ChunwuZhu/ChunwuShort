@@ -410,3 +410,42 @@ telethon.errors.rpcerrorlist.MessageTooLongError: Message was too long (caused b
 2026-05-01 02:00:00,240 - telethon.network.mtprotosender - INFO - Connecting to 149.154.175.57:443/TcpFull...
 2026-05-01 02:00:00,291 - telethon.network.mtprotosender - INFO - Connection to 149.154.175.57:443/TcpFull complete!
 2026-05-01 02:00:00,622 - bot.handlers - INFO - 🤖 Bot 已启动
+2026-05-01 02:01:35,509 - Main - INFO - 系统正在初始化服务...
+2026-05-01 02:01:35,521 - telethon.network.mtprotosender - INFO - Connecting to 149.154.175.57:443/TcpFull...
+2026-05-01 02:01:35,567 - telethon.network.mtprotosender - INFO - Connection to 149.154.175.57:443/TcpFull complete!
+2026-05-01 02:01:35,932 - bot.handlers - INFO - 🤖 Bot 已启动
+2026-05-01 10:09:46,219 - Main - INFO - 系统正在初始化服务...
+2026-05-01 10:09:46,233 - telethon.network.mtprotosender - INFO - Connecting to 149.154.175.57:443/TcpFull...
+2026-05-01 10:09:46,278 - telethon.network.mtprotosender - INFO - Connection to 149.154.175.57:443/TcpFull complete!
+2026-05-01 10:09:46,596 - bot.handlers - INFO - 🤖 Bot 已启动
+2026-05-02 03:24:50,918 - telethon.client.updates - INFO - Got difference for account updates
+2026-05-02 03:39:50,973 - telethon.client.updates - INFO - Got difference for account updates
+2026-05-02 04:24:51,158 - telethon.client.updates - INFO - Got difference for account updates
+2026-05-02 04:54:51,290 - telethon.client.updates - INFO - Got difference for account updates
+2026-05-02 05:09:51,318 - telethon.client.updates - INFO - Got difference for account updates
+2026-05-02 05:39:51,491 - telethon.client.updates - INFO - Got difference for account updates
+2026-05-02 05:54:51,555 - telethon.client.updates - INFO - Got difference for account updates
+2026-05-02 06:54:51,867 - telethon.client.updates - INFO - Got difference for account updates
+2026-05-02 07:54:52,080 - telethon.client.updates - INFO - Got difference for account updates
+2026-05-02 08:39:52,290 - telethon.client.updates - INFO - Got difference for account updates
+2026-05-02 09:39:52,616 - telethon.client.updates - INFO - Got difference for account updates
+2026-05-02 09:54:52,677 - telethon.client.updates - INFO - Got difference for account updates
+2026-05-02 10:24:52,788 - telethon.client.updates - INFO - Got difference for account updates
+2026-05-02 12:24:53,303 - telethon.client.updates - INFO - Got difference for account updates
+2026-05-02 13:24:53,518 - telethon.client.updates - INFO - Got difference for account updates
+2026-05-02 13:39:53,601 - telethon.client.updates - INFO - Got difference for account updates
+2026-05-02 14:09:53,693 - telethon.client.updates - INFO - Got difference for account updates
+2026-05-02 15:54:54,159 - telethon.client.updates - INFO - Got difference for account updates
+2026-05-02 16:39:54,349 - telethon.client.updates - INFO - Got difference for account updates
+2026-05-02 18:24:54,748 - telethon.client.updates - INFO - Got difference for account updates
+2026-05-02 18:54:54,888 - telethon.client.updates - INFO - Got difference for account updates
+2026-05-02 19:39:55,109 - telethon.client.updates - INFO - Got difference for account updates
+2026-05-02 21:54:55,706 - telethon.client.updates - INFO - Got difference for account updates
+2026-05-02 22:39:55,911 - telethon.client.updates - INFO - Got difference for account updates
+2026-05-02 23:09:56,067 - telethon.client.updates - INFO - Got difference for account updates
+2026-05-02 23:54:56,312 - telethon.client.updates - INFO - Got difference for account updates
+2026-05-03 00:54:56,501 - telethon.client.updates - INFO - Got difference for account updates
+2026-05-03 01:09:56,557 - telethon.client.updates - INFO - Got difference for account updates
+2026-05-03 02:39:56,970 - telethon.client.updates - INFO - Got difference for account updates
+2026-05-03 02:54:57,047 - telethon.client.updates - INFO - Got difference for account updates
+2026-05-03 03:09:57,124 - telethon.client.updates - INFO - Got difference for account updates
