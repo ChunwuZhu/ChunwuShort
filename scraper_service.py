@@ -2,13 +2,14 @@ import time
 import logging
 import pandas as pd
 import hashlib
-import json
 import numpy as np
+import html
+import requests
 from datetime import datetime
 from pytz import timezone
 from scraper.fintel import FintelScraper
+from utils.config import config
 from utils.db import SessionLocal, ShortSqueeze, GammaSqueeze, FintelSout, OptionFlow
-from sqlalchemy import desc
 from sqlalchemy.exc import IntegrityError
 
 # 配置独立日志
@@ -17,6 +18,15 @@ logging.basicConfig(
     format='%(asctime)s - ScraperService - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
+
+CT_TZ = timezone('US/Central')
+SOUT_ALERT_WINDOWS_CT = (
+    (8 * 60 + 30, 9 * 60),       # 08:30-09:00 CT, 开盘后 30 分钟
+    (14 * 60 + 30, 15 * 60),     # 14:30-15:00 CT, 收盘前 30 分钟
+)
+SOUT_ALERT_MAX_DTX = 60
+SOUT_ALERT_MIN_SIGMA = 2
+SOUT_ALERT_CONTRACTS = ('CALL', 'PUT')
 
 def get_row_hash(row_dict):
     """根据日期、时间、Symbol和权利金计算唯一哈希（用户要求）"""
@@ -33,10 +43,110 @@ def clean_dict(d):
     """递归清理字典中的 NaN，替换为 None"""
     return {k: (None if pd.isna(v) else v) for k, v in d.items()}
 
+def is_sout_alert_window():
+    """开盘后 30 分钟和收盘前 30 分钟，按 CT 计算。"""
+    now = datetime.now(CT_TZ)
+    if now.weekday() >= 5:
+        return False
+    minutes = now.hour * 60 + now.minute
+    return any(start <= minutes <= end for start, end in SOUT_ALERT_WINDOWS_CT)
+
+def convert_et_to_ct(time_str):
+    try:
+        et_time = datetime.strptime(str(time_str)[:5], "%H:%M")
+        ct_time = et_time - pd.Timedelta(hours=1)
+        return ct_time.strftime("%H:%M")
+    except Exception:
+        return str(time_str)[:5]
+
+def is_sout_alert_match(row_dict):
+    if str(row_dict.get('Trade Side', '')).upper() != 'BUY':
+        return False
+    if str(row_dict.get('Contract', '')).upper() not in SOUT_ALERT_CONTRACTS:
+        return False
+    try:
+        dtx_val = int(pd.to_numeric(row_dict.get('DTX', 999), errors='coerce'))
+        sigma_val = float(pd.to_numeric(row_dict.get('Premium Sigmas', 0), errors='coerce'))
+    except Exception:
+        return False
+    return dtx_val <= SOUT_ALERT_MAX_DTX and sigma_val > SOUT_ALERT_MIN_SIGMA
+
+def format_sout_alert_line(row_dict):
+    security = str(row_dict.get('Security', ''))
+    ticker = security.split(' / ')[0].strip().upper()
+    if not ticker or ticker == 'UNKNOWN' or ' / ' not in security:
+        ticker = str(row_dict.get('Symbol', row_dict.get('Ticker', 'N/A'))).strip().upper().split(':')[0]
+
+    contract = html.escape(str(row_dict.get('Contract', '')).upper())
+    t_ct = html.escape(convert_et_to_ct(row_dict.get('Time', '--:--')))
+    dtx = html.escape(str(row_dict.get('DTX', '0')))
+    sigma = float(pd.to_numeric(row_dict.get('Premium Sigmas', 0), errors='coerce'))
+    premium = pd.to_numeric(row_dict.get('Premium Paid ($)', 0), errors='coerce')
+    if pd.isna(premium):
+        premium = 0
+    if abs(premium) >= 1000000:
+        premium_text = f"{premium/1000000:.1f}M"
+    elif abs(premium) >= 1000:
+        premium_text = f"{premium/1000:.0f}K"
+    else:
+        premium_text = f"{premium:.0f}"
+
+    strike_val = row_dict.get('Strike Price')
+    try:
+        strike = f"${float(pd.to_numeric(strike_val, errors='coerce')):g}"
+    except Exception:
+        strike = f"${strike_val}" if strike_val else "N/A"
+
+    ticker_safe = html.escape(ticker)
+    link = f"https://www.google.com/finance/quote/{ticker_safe}:NASDAQ"
+    return (
+        f"<code>{t_ct}</code> <a href=\"{link}\">{ticker_safe}</a> "
+        f"<code>{contract}</code> <code>{dtx}d</code> "
+        f"<code>{html.escape(str(strike))}</code> <code>{premium_text}</code> "
+        f"<code>s:{sigma:.1f}</code>"
+    )
+
+def send_sout_alerts(rows):
+    if not rows or not config.TELEGRAM_BOT_TOKEN or not config.TARGET_GROUP_ID:
+        return
+    if not is_sout_alert_window():
+        return
+
+    matched = [row for row in rows if is_sout_alert_match(row)]
+    if not matched:
+        return
+
+    url = f"https://api.telegram.org/bot{config.TELEGRAM_BOT_TOKEN}/sendMessage"
+    for i in range(0, len(matched), 20):
+        chunk = matched[i:i + 20]
+        message = (
+            f"📢 <b>BUY CALL / BUY PUT 更新</b> ({datetime.now(CT_TZ).strftime('%H:%M')} CT)\n"
+            "<code>DTX&lt;=60</code> <code>Sigma&gt;2</code>\n"
+            + "\n".join(format_sout_alert_line(row) for row in chunk)
+        )
+        try:
+            resp = requests.post(
+                url,
+                json={
+                    "chat_id": config.TARGET_GROUP_ID,
+                    "text": message,
+                    "parse_mode": "HTML",
+                    "disable_web_page_preview": True,
+                    "reply_markup": {"inline_keyboard": [[{"text": "📋 菜单", "callback_data": "menu"}]]},
+                },
+                timeout=10,
+            )
+            if resp.status_code >= 400:
+                logger.error(f"SOUT 推送失败: {resp.status_code} {resp.text}")
+            else:
+                logger.info(f"📨 SOUT 提醒已推送 {len(chunk)} 条。")
+        except Exception as e:
+            logger.error(f"SOUT 推送异常: {e}")
+
 def save_to_db(df, model_class):
     """通用持久化逻辑，支持增量去重"""
     if df is None or df.empty:
-        return
+        return []
 
     # 预处理：将所有 NaN 替换为 None
     df = df.replace({np.nan: None})
@@ -45,12 +155,16 @@ def save_to_db(df, model_class):
     try:
         scraped_at = datetime.now()
         count = 0
+        inserted_sout_rows = []
         
         if model_class == FintelSout:
             for _, row in df.iterrows():
                 row_dict = clean_dict(row.to_dict())
                 ticker = str(row_dict.get('Symbol', 'Unknown')).strip().upper()
                 current_hash = get_row_hash(row_dict)
+
+                if db.query(FintelSout.id).filter(FintelSout.data_hash == current_hash).first():
+                    continue
                 
                 try:
                     with db.begin_nested():
@@ -63,6 +177,7 @@ def save_to_db(df, model_class):
                         )
                         db.add(record)
                     count += 1
+                    inserted_sout_rows.append(row_dict)
                 except IntegrityError:
                     continue
                 except Exception as row_e:
@@ -107,17 +222,18 @@ def save_to_db(df, model_class):
         db.commit()
         if count > 0:
             logger.info(f"✅ [{model_class.__tablename__}] 成功存入 {count} 条记录。")
+        return inserted_sout_rows if model_class == FintelSout else []
             
     except Exception as e:
         db.rollback()
         logger.error(f"❌ 数据库操作整体失败: {e}")
+        return []
     finally:
         db.close()
 
 def is_market_hours():
     """判断当前是否在交易时间内 (周一至周五 08:00 - 15:30 CT)"""
-    tz = timezone('US/Central')
-    now = datetime.now(tz)
+    now = datetime.now(CT_TZ)
     if now.weekday() >= 5: return False
     start_time = now.replace(hour=8, minute=0, second=0, microsecond=0)
     end_time = now.replace(hour=15, minute=30, second=0, microsecond=0)
@@ -148,7 +264,8 @@ def main_loop():
                 scraper.start_browser(urls)
             
             # 高频抓取 (1 min)
-            save_to_db(scraper.scrape_from_tab_no_refresh(urls[0]), FintelSout)
+            inserted_sout_rows = save_to_db(scraper.scrape_from_tab_no_refresh(urls[0]), FintelSout)
+            send_sout_alerts(inserted_sout_rows)
             
             # 低频刷新 (30 mins)
             if tick % 30 == 0:

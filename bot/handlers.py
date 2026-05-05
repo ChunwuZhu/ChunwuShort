@@ -1,5 +1,4 @@
 import logging
-import asyncio
 import pandas as pd
 from datetime import datetime, timedelta
 from telethon import TelegramClient, events, Button
@@ -7,7 +6,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from pytz import timezone
 from utils.config import config
 from utils.db import SessionLocal, ShortSqueeze, GammaSqueeze, FintelSout, OptionFlow
-from sqlalchemy import func, desc
+from sqlalchemy import func
 
 logger = logging.getLogger(__name__)
 
@@ -39,29 +38,45 @@ class ShortBot:
     def get_filtered_sout(self, side, contract, limit=20, offset=0, dtx_limit=None, sigma_min=None):
         db = SessionLocal()
         try:
-            results = db.query(FintelSout).order_by(FintelSout.id.desc()).all()
+            results = (
+                db.query(FintelSout)
+                .filter(func.upper(FintelSout.metrics['Trade Side'].astext) == side)
+                .filter(func.upper(FintelSout.metrics['Contract'].astext) == contract)
+                .order_by(FintelSout.id.desc())
+                .yield_per(200)
+            )
             data = []
+            matched = 0
             for r in results:
                 m = r.metrics
-                if str(m.get('Trade Side')).upper() == side and str(m.get('Contract')).upper() == contract:
-                    if dtx_limit:
-                        try:
-                            dtx_val = int(pd.to_numeric(m.get('DTX', 999), errors='coerce'))
-                            if dtx_val >= dtx_limit: continue
-                        except: continue
-                    if sigma_min:
-                        try:
-                            sig_val = float(pd.to_numeric(m.get('Premium Sigmas', 0), errors='coerce'))
-                            if sig_val < sigma_min: continue
-                        except: continue
-                    row = dict(m)
-                    row['Security'] = r.security_name
-                    data.append(row)
+                if dtx_limit:
+                    try:
+                        dtx_val = int(pd.to_numeric(m.get('DTX', 999), errors='coerce'))
+                        if dtx_val >= dtx_limit:
+                            continue
+                    except Exception:
+                        continue
+                if sigma_min:
+                    try:
+                        sig_val = float(pd.to_numeric(m.get('Premium Sigmas', 0), errors='coerce'))
+                        if sig_val < sigma_min:
+                            continue
+                    except Exception:
+                        continue
+                if matched < offset:
+                    matched += 1
+                    continue
+                row = dict(m)
+                row['Security'] = r.security_name
+                data.append(row)
+                matched += 1
+                if len(data) >= limit:
+                    break
             df = pd.DataFrame(data)
             if df.empty: return df
             if 'Time' in df.columns:
                 df = df.sort_values(by=['Date', 'Time'], ascending=False)
-            return df.iloc[offset:offset+limit]
+            return df
         finally:
             db.close()
 
@@ -123,42 +138,78 @@ class ShortBot:
                 lines.append(f"{i:02d}. {ticker_link} {score} | {extra}")
         return msg + "\n".join(lines)
 
+    def get_menu_text(self):
+        return (
+            "**ShortChunwuBot 🛠 菜单**\n"
+            "───|────────|──────\n"
+            "📊 **Short:** /top | /change\n"
+            "📈 **Gamma:** /topg | /changeg\n"
+            "💰 **Flow:**  /topo\n"
+            "🔥 **实时 (Live):**\n"
+            "  /bc | /bp | /sc | /sp\n"
+            "  /bc3m | /bp3m | /sc3m | /sp3m\n"
+            "  /bc3m5s | /bp3m5s | /sc3m5s | /sp3m5s\n"
+            "🔍 **Quick:** `?代码` (例: `?TSLA`)\n"
+            "───|────────|──────\n"
+            "⏰ 08:15 & 15:15 CT 自动推送"
+        )
+
     async def send_scheduled_report(self):
         df = self.get_latest_data(ShortSqueeze)
         if df is not None:
-            await self.client.send_message(config.TARGET_GROUP_ID, self.format_compact_message(df, mode='top', is_scheduled=True), link_preview=False)
+            await self.client.send_message(
+                config.TARGET_GROUP_ID,
+                self.format_compact_message(df, mode='top', is_scheduled=True),
+                buttons=[Button.inline("📋 菜单", b"menu")],
+                link_preview=False
+            )
 
     async def start(self):
         await self.client.start(bot_token=config.TELEGRAM_BOT_TOKEN)
         logger.info("🤖 Bot 已启动")
 
+        if config.TARGET_GROUP_ID:
+            self.scheduler.add_job(
+                self.send_scheduled_report,
+                "cron",
+                hour=8,
+                minute=15,
+                timezone=self.tz_ct,
+                id="short_report_morning",
+                replace_existing=True,
+            )
+            self.scheduler.add_job(
+                self.send_scheduled_report,
+                "cron",
+                hour=15,
+                minute=15,
+                timezone=self.tz_ct,
+                id="short_report_close",
+                replace_existing=True,
+            )
+            self.scheduler.start()
+            logger.info("⏰ 定时推送已启用: 08:15 和 15:15 CT")
+        else:
+            logger.warning("TARGET_GROUP_ID 未配置，定时推送未启用。")
+
         @self.client.on(events.NewMessage(pattern=r'^p$'))
         async def handle_menu(event):
-            menu_text = (
-                "**ShortChunwuBot 🛠 菜单**\n"
-                "───|────────|──────\n"
-                "📊 **Short:** /top | /change\n"
-                "📈 **Gamma:** /topg | /changeg\n"
-                "💰 **Flow:**  /topo\n"
-                "🔥 **实时 (Live):**\n"
-                "  /bc | /bp | /sc | /sp\n"
-                "  /bc3m | /bp3m | /sc3m | /sp3m\n"
-                "  /bc3m5s | /bp3m5s | /sc3m5s | /sp3m5s\n"
-                "🔍 **Quick:** `?代码` (例: `?TSLA`)\n"
-                "───|────────|──────\n"
-                "⏰ 08:15 & 15:15 CT 自动推送"
-            )
-            await event.respond(menu_text)
+            await event.respond(self.get_menu_text(), buttons=[Button.inline("📋 菜单", b"menu")])
 
         @self.client.on(events.NewMessage(pattern=r'(?i)/start$'))
-        async def handle_start(event): await event.respond("欢迎！输入 `p` 查看指令菜单。")
+        async def handle_start(event):
+            await event.respond("欢迎！点击下方按钮或输入 `p` 查看指令菜单。", buttons=[Button.inline("📋 菜单", b"menu")])
 
         @self.client.on(events.NewMessage(pattern=r'(?i)/(top|change|topg|changeg|topo)'))
         async def handle_list(event):
             cmd = event.pattern_match.group(1).lower()
             model = ShortSqueeze if cmd in ['top', 'change'] else (GammaSqueeze if 'g' in cmd else OptionFlow)
             df = self.get_latest_data(model)
-            await event.respond(self.format_compact_message(df, mode=cmd), link_preview=False)
+            await event.respond(
+                self.format_compact_message(df, mode=cmd),
+                buttons=[Button.inline("📋 菜单", b"menu")],
+                link_preview=False
+            )
 
         @self.client.on(events.NewMessage(pattern=r'(?i)/(bc|bp|sc|sp)(3m5s|3m)?'))
         async def handle_sout(event):
@@ -169,8 +220,16 @@ class ShortBot:
             dtx_limit = 100 if '3m' in suffix else None
             sigma_min = 5.0 if '5s' in suffix else None
             df = self.get_filtered_sout(side, contract, limit=20, offset=0, dtx_limit=dtx_limit, sigma_min=sigma_min)
-            buttons = [Button.inline("下一页 ⬇️", f"page_{base_cmd}{suffix}_20".encode())]
+            buttons = [
+                [Button.inline("下一页 ⬇️", f"page_{base_cmd}{suffix}_20".encode())],
+                [Button.inline("📋 菜单", b"menu")]
+            ]
             await event.respond(self.format_compact_message(df, mode=f'sout_{base_cmd}'), buttons=buttons, link_preview=False)
+
+        @self.client.on(events.CallbackQuery(pattern=r'menu'))
+        async def handle_menu_callback(event):
+            await event.respond(self.get_menu_text(), buttons=[Button.inline("📋 菜单", b"menu")])
+            await event.answer()
 
         @self.client.on(events.CallbackQuery(pattern=r'page_(\w+)_(\d+)'))
         async def handle_pagination(event):
@@ -194,12 +253,21 @@ class ShortBot:
                 row.append(Button.inline("上一页 ⬆️", f"page_{cmd_raw}_{max(0, offset-20)}".encode()))
             row.append(Button.inline("下一页 ⬇️", f"page_{cmd_raw}_{offset+20}".encode()))
             buttons.append(row)
+            buttons.append([Button.inline("📋 菜单", b"menu")])
             await event.edit(self.format_compact_message(df, mode=f'sout_{base_cmd}'), buttons=buttons, link_preview=False)
             await event.answer()
 
         @self.client.on(events.NewMessage(pattern=r'^\?(\w+)'))
         async def handle_quick_link(event):
             ticker = event.pattern_match.group(1).upper()
-            await event.respond(f"🔍 **[{ticker}](https://www.google.com/finance/quote/{ticker}:NASDAQ)**", link_preview=False)
+            await event.respond(
+                f"🔍 **[{ticker}](https://www.google.com/finance/quote/{ticker}:NASDAQ)**",
+                buttons=[Button.inline("📋 菜单", b"menu")],
+                link_preview=False
+            )
 
-        await self.client.run_until_disconnected()
+        try:
+            await self.client.run_until_disconnected()
+        finally:
+            if self.scheduler.running:
+                self.scheduler.shutdown(wait=False)

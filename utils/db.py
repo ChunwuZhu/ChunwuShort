@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, Column, Integer, String, Numeric, DateTime, Index, func
+from sqlalchemy import create_engine, Column, Integer, String, Numeric, DateTime, Index, UniqueConstraint, func
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import declarative_base, sessionmaker
 from utils.config import config
@@ -55,6 +55,7 @@ class FintelSout(Base):
         Index('idx_sout_scraped_at', scraped_at.desc()),
         Index('idx_sout_ticker', ticker),
         Index('idx_sout_data_hash', data_hash),
+        UniqueConstraint('data_hash', name='uq_sout_data_hash'),
     )
 
 class OptionFlow(Base):
