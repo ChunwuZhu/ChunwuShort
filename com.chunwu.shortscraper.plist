@@ -7,18 +7,18 @@
     <key>ProgramArguments</key>
     <array>
         <string>/opt/miniconda3/bin/python3.13</string>
-        <string>/Users/chunwu/Desktop/ChunwuShort/scraper_service.py</string>
+        <string>/Users/chunwu/Desktop/A02Info/scraper_service.py</string>
     </array>
     <key>WorkingDirectory</key>
-    <string>/Users/chunwu/Desktop/ChunwuShort</string>
+    <string>/Users/chunwu/Desktop/A02Info</string>
     <key>RunAtLoad</key>
     <true/>
     <key>KeepAlive</key>
     <true/>
     <key>StandardOutPath</key>
-    <string>/Users/chunwu/Desktop/ChunwuShort/scraper.log</string>
+    <string>/Users/chunwu/Desktop/A02Info/scraper.log</string>
     <key>StandardErrorPath</key>
-    <string>/Users/chunwu/Desktop/ChunwuShort/scraper.log</string>
+    <string>/Users/chunwu/Desktop/A02Info/scraper.log</string>
     <key>EnvironmentVariables</key>
     <dict>
         <key>PATH</key>

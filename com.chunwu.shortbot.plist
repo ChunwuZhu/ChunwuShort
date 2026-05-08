@@ -7,10 +7,10 @@
     <key>ProgramArguments</key>
     <array>
         <string>/opt/miniconda3/bin/python3.13</string>
-        <string>/Users/chunwu/Desktop/ChunwuShort/main.py</string>
+        <string>/Users/chunwu/Desktop/A02Info/main.py</string>
     </array>
     <key>WorkingDirectory</key>
-    <string>/Users/chunwu/Desktop/ChunwuShort</string>
+    <string>/Users/chunwu/Desktop/A02Info</string>
     <key>RunAtLoad</key>
     <true/>
     <key>KeepAlive</key>

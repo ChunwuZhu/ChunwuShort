@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, Column, Integer, String, Numeric, DateTime, Index, UniqueConstraint, func
+from sqlalchemy import create_engine, Column, Date, Integer, String, Numeric, DateTime, Index, UniqueConstraint, func
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import declarative_base, sessionmaker
 from utils.config import config
@@ -72,6 +72,39 @@ class OptionFlow(Base):
     __table_args__ = (
         Index('idx_option_scraped_at', scraped_at.desc()),
         Index('idx_option_ticker', ticker),
+    )
+
+class EarningsEvent(Base):
+    __tablename__ = 'earnings_events'
+
+    id = Column(Integer, primary_key=True)
+    report_date = Column(Date, nullable=False)
+    ticker = Column(String(20), nullable=False)
+    exchange = Column(String(50))
+    report_time = Column(String(20), nullable=False, default='')
+    market_cap = Column(Numeric(20, 2))
+    cap_str = Column(String(30))
+    source = Column(String(30), nullable=False, default='nasdaq')
+    fetched_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+
+    __table_args__ = (
+        UniqueConstraint('report_date', 'ticker', 'report_time', name='uq_earnings_event'),
+        Index('idx_earnings_report_date', report_date),
+        Index('idx_earnings_ticker', ticker),
+    )
+
+class EarningsCacheDate(Base):
+    __tablename__ = 'earnings_cache_dates'
+
+    id = Column(Integer, primary_key=True)
+    report_date = Column(Date, nullable=False, unique=True)
+    event_count = Column(Integer, nullable=False, default=0)
+    fetched_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+
+    __table_args__ = (
+        Index('idx_earnings_cache_date', report_date),
     )
 
 engine = create_engine(config.DATABASE_URL)

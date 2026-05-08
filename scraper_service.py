@@ -7,6 +7,7 @@ import html
 import requests
 from datetime import datetime
 from pytz import timezone
+from bot.earnings import google_finance_url
 from scraper.fintel import FintelScraper
 from utils.config import config
 from utils.db import SessionLocal, ShortSqueeze, GammaSqueeze, FintelSout, OptionFlow
@@ -21,11 +22,11 @@ logger = logging.getLogger(__name__)
 
 CT_TZ = timezone('US/Central')
 SOUT_ALERT_WINDOWS_CT = (
-    (8 * 60 + 30, 9 * 60),       # 08:30-09:00 CT, 开盘后 30 分钟
-    (14 * 60 + 30, 15 * 60),     # 14:30-15:00 CT, 收盘前 30 分钟
+    {"start": 8 * 60 + 30, "end": 9 * 60, "min_sigma": 2},         # 08:30-09:00 CT
+    {"start": 9 * 60, "end": 14 * 60 + 30, "min_sigma": 6},        # 09:00-14:30 CT
+    {"start": 14 * 60 + 30, "end": 15 * 60 + 1, "min_sigma": 2},   # 14:30-15:00 CT
 )
-SOUT_ALERT_MAX_DTX = 60
-SOUT_ALERT_MIN_SIGMA = 2
+SOUT_ALERT_MAX_DTX_EXCLUSIVE = 65
 SOUT_ALERT_CONTRACTS = ('CALL', 'PUT')
 
 def get_row_hash(row_dict):
@@ -43,13 +44,13 @@ def clean_dict(d):
     """递归清理字典中的 NaN，替换为 None"""
     return {k: (None if pd.isna(v) else v) for k, v in d.items()}
 
-def is_sout_alert_window():
-    """开盘后 30 分钟和收盘前 30 分钟，按 CT 计算。"""
+def get_sout_alert_rule():
+    """返回当前 CT 时间窗口对应的 SOUT alert 规则。"""
     now = datetime.now(CT_TZ)
     if now.weekday() >= 5:
-        return False
+        return None
     minutes = now.hour * 60 + now.minute
-    return any(start <= minutes <= end for start, end in SOUT_ALERT_WINDOWS_CT)
+    return next((rule for rule in SOUT_ALERT_WINDOWS_CT if rule["start"] <= minutes < rule["end"]), None)
 
 def convert_et_to_ct(time_str):
     try:
@@ -59,7 +60,7 @@ def convert_et_to_ct(time_str):
     except Exception:
         return str(time_str)[:5]
 
-def is_sout_alert_match(row_dict):
+def is_sout_alert_match(row_dict, min_sigma):
     if str(row_dict.get('Trade Side', '')).upper() != 'BUY':
         return False
     if str(row_dict.get('Contract', '')).upper() not in SOUT_ALERT_CONTRACTS:
@@ -69,7 +70,7 @@ def is_sout_alert_match(row_dict):
         sigma_val = float(pd.to_numeric(row_dict.get('Premium Sigmas', 0), errors='coerce'))
     except Exception:
         return False
-    return dtx_val <= SOUT_ALERT_MAX_DTX and sigma_val > SOUT_ALERT_MIN_SIGMA
+    return dtx_val < SOUT_ALERT_MAX_DTX_EXCLUSIVE and sigma_val > min_sigma
 
 def format_sout_alert_line(row_dict):
     security = str(row_dict.get('Security', ''))
@@ -98,7 +99,7 @@ def format_sout_alert_line(row_dict):
         strike = f"${strike_val}" if strike_val else "N/A"
 
     ticker_safe = html.escape(ticker)
-    link = f"https://www.google.com/finance/quote/{ticker_safe}:NASDAQ"
+    link = google_finance_url(ticker_safe)
     return (
         f"<code>{t_ct}</code> <a href=\"{link}\">{ticker_safe}</a> "
         f"<code>{contract}</code> <code>{dtx}d</code> "
@@ -109,21 +110,18 @@ def format_sout_alert_line(row_dict):
 def send_sout_alerts(rows):
     if not rows or not config.TELEGRAM_BOT_TOKEN or not config.TARGET_GROUP_ID:
         return
-    if not is_sout_alert_window():
+    rule = get_sout_alert_rule()
+    if not rule:
         return
 
-    matched = [row for row in rows if is_sout_alert_match(row)]
+    matched = [row for row in rows if is_sout_alert_match(row, rule["min_sigma"])]
     if not matched:
         return
 
     url = f"https://api.telegram.org/bot{config.TELEGRAM_BOT_TOKEN}/sendMessage"
     for i in range(0, len(matched), 20):
         chunk = matched[i:i + 20]
-        message = (
-            f"📢 <b>BUY CALL / BUY PUT 更新</b> ({datetime.now(CT_TZ).strftime('%H:%M')} CT)\n"
-            "<code>DTX&lt;=60</code> <code>Sigma&gt;2</code>\n"
-            + "\n".join(format_sout_alert_line(row) for row in chunk)
-        )
+        message = "\n".join(format_sout_alert_line(row) for row in chunk)
         try:
             resp = requests.post(
                 url,

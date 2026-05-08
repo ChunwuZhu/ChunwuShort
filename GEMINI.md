@@ -1,14 +1,14 @@
-# ChunwuShort - Fintel 做空监控机器人
+# A02Info - 信息群组机器人
 
-基于 Telegram、Fintel 网页抓取和 PostgreSQL 的做空及期权异动监控系统。
+基于 `@ShortChunwuBot`、Fintel 网页抓取、Nasdaq 财报查询和 PostgreSQL 的信息群组机器人。
 
 主要文档见 `README.md`。
 
 ## 运行结构
 
-- `main.py`: Telegram bot 入口，对应 `com.chunwu.shortbot`。
+- `main.py`: Telegram bot 入口，对应 `com.chunwu.shortbot`，只响应 `TARGET_GROUP_ID` 信息群组。
 - `scraper_service.py`: Fintel 抓取和入库服务，对应 `com.chunwu.shortscraper`。
-- `bot/`: Telegram 命令和菜单逻辑。
+- `bot/`: Telegram 命令、菜单和手动财报查询逻辑。
 - `scraper/`: 基于 `undetected-chromedriver` 的 Fintel 页面抓取模块。
 - `utils/`: 配置和数据库模型。
 - `fintel_profile/`: 浏览器持久化 Session，本地私有。

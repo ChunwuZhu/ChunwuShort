@@ -1,10 +1,15 @@
 telethon
 python-dotenv
 requests
+aiohttp
+yfinance
 pandas
+pandas_market_calendars
 playwright
 playwright-stealth
 undetected-chromedriver
 tabulate
 apscheduler
 pytz
+futu-api
+tamu-chat

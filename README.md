@@ -1,13 +1,13 @@
-# ChunwuShort
+# A02Info
 
-Fintel short squeeze and options flow monitor with a Telegram bot interface.
+Unified information bot for Fintel short squeeze, options flow, and manual earnings lookup.
 
 ## Services
 
 The project runs as two macOS `launchd` services:
 
 - `com.chunwu.shortbot` runs `main.py`.
-  It handles Telegram commands, reads stored data from PostgreSQL, and sends scheduled Short Squeeze reports at `08:15` and `15:15` CT.
+  It handles `@ShortChunwuBot` Telegram commands in the configured information group only, reads stored data from PostgreSQL, refreshes the earnings cache every Friday at `15:00` CT, and supports manual earnings lookup.
 - `com.chunwu.shortscraper` runs `scraper_service.py`.
   It opens Fintel with `undetected-chromedriver`, keeps Fintel pages loaded, scrapes data during market hours, writes new rows to PostgreSQL, and sends SOUT alerts immediately after new matching rows are inserted.
 
@@ -29,25 +29,39 @@ SOUT rows are deduplicated by `data_hash`, based on date, time, symbol, and prem
 - `/top`, `/change`: latest Short Squeeze leaderboard.
 - `/topg`, `/changeg`: latest Gamma Squeeze leaderboard.
 - `/topo`: latest Option Flow leaderboard.
-- `/bc`, `/bp`, `/sc`, `/sp`: latest BUY CALL, BUY PUT, SELL CALL, SELL PUT SOUT rows.
-- `/bc3m`, `/bp3m`, `/sc3m`, `/sp3m`: SOUT rows with `DTX < 100`.
-- `/bc3m5s`, `/bp3m5s`, `/sc3m5s`, `/sp3m5s`: SOUT rows with `DTX < 100` and `Premium Sigmas >= 5`.
+- `/bc`, `/bp`: latest BUY CALL and BUY PUT SOUT rows.
+- `/bc3m`, `/bp3m`: SOUT rows with `DTX < 100`.
+- `/bc3m5s`, `/bp3m5s`: SOUT rows with `DTX < 100` and `Premium Sigmas >= 5`.
+- `/Tday`: manually fetch and push today's US earnings with market cap above `$100B`.
+- `/Nday`: manually fetch and push next trading day's US earnings with market cap above `$100B`.
 - `?TSLA`: quick Google Finance link for a ticker.
-- `p`: command menu.
+- `p` or `P`: command menu.
+
+All bot commands and callbacks are ignored outside `TARGET_GROUP_ID`.
+
+## Earnings Cache
+
+Earnings data is stored in PostgreSQL tables `earnings_events` and `earnings_cache_dates`.
+
+- The bot refreshes the next two weeks of earnings every Friday at `15:00` CT.
+- `/Tday` and `/Nday` read from the database first.
+- If the requested date is not cached, the bot fetches that date once, stores it, and replies from the cache.
+- Dates with no matching `$100B+` earnings are also marked as cached, so empty results do not trigger repeated API calls.
+- Duplicate rows are prevented by a unique key on `report_date`, `ticker`, and `report_time`.
 
 ## Automatic Alerts
 
 The scraper sends immediate Telegram alerts only for new SOUT rows inserted during these CT windows:
 
-- `08:30-09:00`: first 30 minutes after market open.
-- `14:30-15:00`: last 30 minutes before market close.
+- `08:30-09:00`: first 30 minutes after market open, `Premium Sigmas > 2`.
+- `09:00-14:30`: regular session, `Premium Sigmas > 6`.
+- `14:30-15:00`: last 30 minutes before market close, `Premium Sigmas > 2`.
 
 Alert filters:
 
 - `Trade Side = BUY`
 - `Contract = CALL` or `PUT`
-- `DTX <= 60`
-- `Premium Sigmas > 2`
+- `DTX < 65`
 
 ## Setup
 

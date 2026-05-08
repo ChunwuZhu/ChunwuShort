@@ -39,7 +39,7 @@ class FintelScraper:
         options.add_argument(f"--user-data-dir={config.PROFILE_DIR}")
         
         try:
-            self.driver = uc.Chrome(options=options, version_main=147, headless=False)
+            self.driver = uc.Chrome(options=options, headless=False, version_main=147)
             
             # 1. 确保登录
             self._ensure_logged_in()
