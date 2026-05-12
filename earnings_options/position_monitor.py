@@ -25,6 +25,48 @@ DEFAULT_STOP_LOSS_PCT = Decimal("-50")
 DEFAULT_EXPIRY_WARN_DAYS = 1
 
 
+def refresh_open_positions(
+    *,
+    take_profit_pct: Decimal | float | str = DEFAULT_TAKE_PROFIT_PCT,
+    stop_loss_pct: Decimal | float | str = DEFAULT_STOP_LOSS_PCT,
+    notify: bool = False,
+) -> dict[str, Any]:
+    """Refresh all filled paper option batches that have not been closed."""
+    db = SessionLocal()
+    try:
+        batches = (
+            db.query(PaperOptionOrderBatch)
+            .filter(PaperOptionOrderBatch.status.in_(("filled", "partial_filled")))
+            .order_by(PaperOptionOrderBatch.id.asc())
+            .all()
+        )
+        batch_ids = [batch.id for batch in batches]
+    finally:
+        db.close()
+
+    results = []
+    errors = []
+    for batch_id in batch_ids:
+        try:
+            results.append(
+                refresh_position_snapshot(
+                    order_batch_id=batch_id,
+                    take_profit_pct=take_profit_pct,
+                    stop_loss_pct=stop_loss_pct,
+                    notify=notify,
+                )
+            )
+        except Exception as exc:
+            errors.append({"order_batch_id": batch_id, "error": str(exc)})
+    return {
+        "batch_count": len(batch_ids),
+        "refreshed_count": len(results),
+        "error_count": len(errors),
+        "results": results,
+        "errors": errors,
+    }
+
+
 def refresh_position_snapshot(
     *,
     order_batch_id: int,

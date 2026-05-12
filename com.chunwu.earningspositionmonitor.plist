@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.chunwu.earningspositionmonitor</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/opt/miniconda3/bin/python3.13</string>
+        <string>/Users/chunwu/Desktop/A02Info/scripts/refresh_open_positions.py</string>
+        <string>--init-db</string>
+        <string>--notify</string>
+    </array>
+    <key>WorkingDirectory</key>
+    <string>/Users/chunwu/Desktop/A02Info</string>
+    <key>StartInterval</key>
+    <integer>300</integer>
+    <key>StandardOutPath</key>
+    <string>/Users/chunwu/Desktop/A02Info/earnings_position_monitor.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/chunwu/Desktop/A02Info/earnings_position_monitor.log</string>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/opt/miniconda3/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+        <key>PYTHONUNBUFFERED</key>
+        <string>1</string>
+    </dict>
+</dict>
+</plist>

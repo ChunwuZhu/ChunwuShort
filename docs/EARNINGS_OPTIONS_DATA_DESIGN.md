@@ -829,6 +829,30 @@ short leg -> BUY at ask
 
 This step does not place exit orders.
 
+Open positions can also be refreshed as a group:
+
+```bash
+/opt/miniconda3/bin/python3.13 scripts/refresh_open_positions.py --notify
+```
+
+The LaunchAgent below runs that command every 300 seconds:
+
+```text
+com.chunwu.earningspositionmonitor
+```
+
+The plist is:
+
+```text
+com.chunwu.earningspositionmonitor.plist
+```
+
+Runtime log:
+
+```text
+earnings_position_monitor.log
+```
+
 ## Repository Quality Hooks
 
 Git hooks are installed through:
