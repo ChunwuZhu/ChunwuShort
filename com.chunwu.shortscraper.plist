@@ -12,9 +12,9 @@
     <key>WorkingDirectory</key>
     <string>/Users/chunwu/Desktop/A02Info</string>
     <key>RunAtLoad</key>
-    <true/>
+    <false/>
     <key>KeepAlive</key>
-    <true/>
+    <false/>
     <key>StandardOutPath</key>
     <string>/Users/chunwu/Desktop/A02Info/scraper.log</string>
     <key>StandardErrorPath</key>
