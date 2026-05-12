@@ -418,6 +418,7 @@ class EarningsDataReadiness(Base):
     benchmark_spy_summary_id = Column(Integer, ForeignKey('equity_technical_summaries.id'))
     benchmark_qqq_summary_id = Column(Integer, ForeignKey('equity_technical_summaries.id'))
     historical_earnings_count = Column(Integer, nullable=False, default=0)
+    news_summary_id = Column(Integer)
     details_json = Column(JSONB)
     checked_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
@@ -425,6 +426,29 @@ class EarningsDataReadiness(Base):
         UniqueConstraint('current_event_id', name='uq_earnings_data_readiness_event'),
         Index('idx_earnings_data_readiness_ticker_report', ticker, report_date),
         Index('idx_earnings_data_readiness_status', status),
+    )
+
+class EarningsNewsSummary(Base):
+    __tablename__ = 'earnings_news_summaries'
+
+    id = Column(Integer, primary_key=True)
+    ticker = Column(String(20), nullable=False)
+    window_id = Column(String(100), nullable=False)
+    report_date = Column(Date, nullable=False)
+    source = Column(String(100), nullable=False, default='quantconnect')
+    provider = Column(String(100))
+    start_date = Column(Date)
+    end_date = Column(Date)
+    company_article_count = Column(Integer, nullable=False, default=0)
+    industry_article_count = Column(Integer, nullable=False, default=0)
+    market_article_count = Column(Integer, nullable=False, default=0)
+    summary_json = Column(JSONB)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+
+    __table_args__ = (
+        UniqueConstraint('ticker', 'window_id', 'source', 'provider', name='uq_earnings_news_summary_scope'),
+        Index('idx_earnings_news_summary_ticker_report', ticker, report_date),
     )
 
 class OptionChainSummary(Base):

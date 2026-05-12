@@ -9,6 +9,7 @@ from sqlalchemy import func
 
 from utils.db import (
     EarningsDataReadiness,
+    EarningsNewsSummary,
     EarningsWatchlist,
     EquityPriceDownload,
     EquityTechnicalSummary,
@@ -124,10 +125,14 @@ def check_event_readiness(db, event: QCEarningsCurrentEvent) -> dict[str, Any]:
         as_of_date=option_summary.as_of_date.isoformat() if option_summary else None,
         message="option-chain pricing/liquidity summary required before option strategy generation",
     )
+    news_summary = _latest_news_summary(db, ticker, window_id)
     checks["news_summary"] = _check_result(
-        False,
+        news_summary is not None,
         "optional",
-        message="not implemented yet; optional context for first readiness version",
+        id_=news_summary.id if news_summary else None,
+        start_date=news_summary.start_date.isoformat() if news_summary and news_summary.start_date else None,
+        end_date=news_summary.end_date.isoformat() if news_summary and news_summary.end_date else None,
+        message="company/industry/market news summary context",
     )
 
     required_missing = [
@@ -156,6 +161,7 @@ def check_event_readiness(db, event: QCEarningsCurrentEvent) -> dict[str, Any]:
             "benchmark_spy_summary_id": benchmark_ids["SPY"],
             "benchmark_qqq_summary_id": benchmark_ids["QQQ"],
             "option_chain_summary_id": option_summary.id if option_summary else None,
+            "news_summary_id": news_summary.id if news_summary else None,
         },
         "counts": {
             "target_price_manifests": price_manifest_count,
@@ -189,6 +195,7 @@ def _upsert_readiness(db, event: QCEarningsCurrentEvent, result: dict[str, Any])
     existing.technical_summary_id = ids["technical_summary_id"]
     existing.benchmark_spy_summary_id = ids["benchmark_spy_summary_id"]
     existing.benchmark_qqq_summary_id = ids["benchmark_qqq_summary_id"]
+    existing.news_summary_id = ids["news_summary_id"]
     existing.historical_earnings_count = counts["historical_earnings"]
     existing.details_json = result
     existing.checked_at = func.now()
@@ -231,6 +238,15 @@ def _latest_option_summary(db, ticker: str, window_id: str) -> OptionChainSummar
         db.query(OptionChainSummary)
         .filter(OptionChainSummary.ticker == ticker, OptionChainSummary.window_id == window_id)
         .order_by(OptionChainSummary.as_of_date.desc(), OptionChainSummary.id.desc())
+        .first()
+    )
+
+
+def _latest_news_summary(db, ticker: str, window_id: str) -> EarningsNewsSummary | None:
+    return (
+        db.query(EarningsNewsSummary)
+        .filter(EarningsNewsSummary.ticker == ticker, EarningsNewsSummary.window_id == window_id)
+        .order_by(EarningsNewsSummary.updated_at.desc(), EarningsNewsSummary.id.desc())
         .first()
     )
 

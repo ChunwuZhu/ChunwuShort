@@ -8,6 +8,7 @@ from typing import Any
 
 from utils.db import (
     EarningsDataReadiness,
+    EarningsNewsSummary,
     EquityTechnicalSummary,
     HistoricalEarningsEvent,
     OptionChainSummary,
@@ -41,6 +42,7 @@ def build_strategy_input(
         fundamental = _latest_fundamental(db, ticker_upper)
         technical = _latest_technical(db, ticker_upper, window_id)
         option_summary = _latest_option_summary(db, ticker_upper, window_id)
+        news_summary = _latest_news_summary(db, ticker_upper, window_id)
         historical_earnings = _historical_earnings(db, ticker_upper, historical_earnings_limit)
         readiness = _latest_readiness(db, event.id)
         benchmarks = {
@@ -70,12 +72,7 @@ def build_strategy_input(
                 "benchmark_context": benchmarks,
             },
             "option_chain_data": _option_payload(option_summary),
-            "news": {
-                "status": "not_implemented",
-                "company_news": [],
-                "industry_news": [],
-                "market_news": [],
-            },
+            "news": _news_payload(news_summary),
             "historical_earnings": [
                 _historical_earnings_payload(row) for row in historical_earnings
             ],
@@ -84,6 +81,7 @@ def build_strategy_input(
                 fundamental=fundamental,
                 technical=technical,
                 option_summary=option_summary,
+                news_summary=news_summary,
                 historical_earnings=historical_earnings,
                 readiness=readiness,
                 benchmarks=benchmarks,
@@ -137,6 +135,15 @@ def _latest_option_summary(db, ticker: str, window_id: str) -> OptionChainSummar
         db.query(OptionChainSummary)
         .filter(OptionChainSummary.ticker == ticker, OptionChainSummary.window_id == window_id)
         .order_by(OptionChainSummary.as_of_date.desc(), OptionChainSummary.id.desc())
+        .first()
+    )
+
+
+def _latest_news_summary(db, ticker: str, window_id: str) -> EarningsNewsSummary | None:
+    return (
+        db.query(EarningsNewsSummary)
+        .filter(EarningsNewsSummary.ticker == ticker, EarningsNewsSummary.window_id == window_id)
+        .order_by(EarningsNewsSummary.updated_at.desc(), EarningsNewsSummary.id.desc())
         .first()
     )
 
@@ -273,6 +280,28 @@ def _option_payload(summary: OptionChainSummary | None) -> dict[str, Any] | None
     return payload
 
 
+def _news_payload(summary: EarningsNewsSummary | None) -> dict[str, Any]:
+    if summary is None:
+        return {
+            "status": "missing",
+            "company_news": {"article_count": 0, "key_articles": []},
+            "industry_news": {"article_count": 0, "key_articles": []},
+            "market_news": {"article_count": 0, "key_articles": []},
+        }
+    payload = dict(summary.summary_json or {})
+    payload["status"] = "available"
+    payload["news_summary_id"] = summary.id
+    payload["columns"] = {
+        "provider": summary.provider,
+        "start_date": summary.start_date,
+        "end_date": summary.end_date,
+        "company_article_count": summary.company_article_count,
+        "industry_article_count": summary.industry_article_count,
+        "market_article_count": summary.market_article_count,
+    }
+    return payload
+
+
 def _historical_earnings_payload(row: HistoricalEarningsEvent) -> dict[str, Any]:
     return {
         "historical_earnings_event_id": row.id,
@@ -312,6 +341,7 @@ def _missing_data(
     fundamental: QCFundamentalSnapshot | None,
     technical: EquityTechnicalSummary | None,
     option_summary: OptionChainSummary | None,
+    news_summary: EarningsNewsSummary | None,
     historical_earnings: list[HistoricalEarningsEvent],
     readiness: EarningsDataReadiness | None,
     benchmarks: dict[str, dict[str, Any] | None],
@@ -325,12 +355,13 @@ def _missing_data(
         missing.append("current earnings-window option-chain summary")
     if not historical_earnings:
         missing.append("historical earnings events and SEC timing enrichment")
+    if news_summary is None:
+        missing.append("company/industry/market news summaries")
     for ticker, payload in benchmarks.items():
         if payload is None:
             missing.append(f"{ticker} benchmark technical context")
     if readiness is None:
         missing.append("latest data readiness row")
-    missing.append("company/industry/market news summaries are not implemented yet")
     return missing
 
 

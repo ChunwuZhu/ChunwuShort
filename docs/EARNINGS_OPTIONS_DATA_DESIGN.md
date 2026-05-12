@@ -313,6 +313,11 @@ missing_data_that_would_improve_analysis
 llm_instructions
 ```
 
+When an `earnings_news_summaries` row exists, `news` contains compact
+company/industry/market layers with article counts, sentiment proxies, top
+keywords, and ranked key articles. If it is absent, `news.status` is `missing`
+and the item appears in `missing_data_that_would_improve_analysis`.
+
 The assembler intentionally does not call Gemini, TAMU, Claude, Moomoo, or any
 trading API. It only reads local PostgreSQL rows and previously computed
 summaries. The model caller should consume this payload and return a separate
@@ -1326,6 +1331,31 @@ background window: last 90 days
 
 Store raw articles and separate summaries. LLMs should read summaries and
 ranked key articles, not every raw article.
+
+Current implementation:
+
+```text
+earnings_options/news_summary.py
+scripts/build_news_summary.py
+earnings_news_summaries
+```
+
+Build a summary from a QuantConnect news CSV:
+
+```bash
+/opt/miniconda3/bin/python3.13 scripts/build_news_summary.py \
+  --ticker AAPL \
+  --report-date 2026-05-08 \
+  --company-name Apple \
+  --persist \
+  qc/data/news_test/news_access_tiingo_AAPL_20260501_20260508.csv
+```
+
+The first version is deterministic and heuristic-based. It classifies rows into
+`company_news`, `industry_news`, and `market_news`, then stores a compact JSON
+summary for the LLM payload. Automatic QC news downloading is still kept behind
+the existing smoke-test project; data jobs for news require explicit
+`params.csv_paths` until that downloader is promoted.
 
 ## Historical Option Chain
 

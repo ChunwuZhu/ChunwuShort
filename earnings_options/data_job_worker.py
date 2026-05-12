@@ -11,6 +11,7 @@ from sqlalchemy.exc import IntegrityError
 
 from earnings_options.technical_indicators import build_technical_summary
 from earnings_options.option_chain_summary import build_option_chain_summary
+from earnings_options.news_summary import build_news_summary_from_csvs, upsert_news_summary
 from earnings_options.sec_earnings import enrich_earnings_anchor, parse_acceptance_datetime
 from qc.equity_price_downloader import download_equity_prices
 from qc.historical_earnings import download_historical_earnings
@@ -29,8 +30,18 @@ NYSE = mcal.get_calendar("NYSE")
 BENCHMARK_TICKERS = ("SPY", "QQQ")
 
 
+SUPPORTED_JOB_TYPES = {
+    "historical_equity_prices",
+    "historical_earnings",
+    "historical_option_chain",
+    "historical_company_news",
+    "historical_market_news",
+    "historical_industry_news",
+}
+
+
 def run_pending_jobs(*, job_type: str = "historical_equity_prices", limit: int = 1) -> list[dict[str, Any]]:
-    if job_type not in {"historical_equity_prices", "historical_earnings", "historical_option_chain"}:
+    if job_type not in SUPPORTED_JOB_TYPES:
         raise ValueError(f"Unsupported job_type: {job_type}")
 
     results = []
@@ -59,6 +70,8 @@ def run_job(job_id: int) -> dict[str, Any]:
             result = _run_historical_earnings(db, job, ticker)
         elif job.job_type == "historical_option_chain":
             result = _run_historical_option_chain(db, job, ticker)
+        elif job.job_type in {"historical_company_news", "historical_market_news", "historical_industry_news"}:
+            result = _run_historical_news(db, job, ticker)
         else:
             raise ValueError(f"Unsupported job_type: {job.job_type}")
 
@@ -138,6 +151,11 @@ def _result_summary(job_type: str, result: dict[str, Any]) -> dict[str, Any]:
             "files": len(result.get("files", [])),
             "manifests": len(result.get("option_chain_download_ids", [])),
         }
+    if job_type in {"historical_company_news", "historical_market_news", "historical_industry_news"}:
+        return {
+            "news_summary_id": result.get("news_summary_id"),
+            "articles": result.get("article_count", 0),
+        }
     return {}
 
 
@@ -206,6 +224,34 @@ def _run_historical_option_chain(db, job: DataJob, ticker: str) -> dict[str, Any
         "files": [str(path) for path in paths],
         "option_chain_download_ids": download_ids,
         "option_chain_summary_id": summary_id,
+    }
+
+
+def _run_historical_news(db, job: DataJob, ticker: str) -> dict[str, Any]:
+    params = job.params or {}
+    report_date = _parse_day(params.get("report_date"))
+    paths = params.get("csv_paths") or params.get("paths") or []
+    if isinstance(paths, str):
+        paths = [paths]
+    if not paths:
+        raise ValueError(
+            f"{job.job_type} requires params.csv_paths until QC news downloader is promoted from smoke test"
+        )
+    summary = build_news_summary_from_csvs(
+        ticker=ticker,
+        report_date=report_date,
+        paths=paths,
+        company_name=params.get("company_name"),
+        provider=params.get("provider"),
+    )
+    summary_id = upsert_news_summary(summary)
+    return {
+        "ticker": ticker,
+        "report_date": report_date.isoformat(),
+        "job_type": job.job_type,
+        "paths": [str(path) for path in paths],
+        "article_count": summary["overall"]["article_count"],
+        "news_summary_id": summary_id,
     }
 
 
