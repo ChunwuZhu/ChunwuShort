@@ -8,6 +8,7 @@ from pytz import timezone
 from utils.config import config
 from utils.db import SessionLocal, ShortSqueeze, GammaSqueeze, FintelSout, OptionFlow
 from utils.links import google_finance_url
+from earnings_options.exit_workflow import record_exit_decision
 from earnings_options.manual_confirmation import record_manual_decision
 from sqlalchemy import func
 
@@ -290,6 +291,25 @@ class ShortBot:
             status_text = "已确认" if result["status"] == "approved" else "已拒绝"
             changed_text = "" if result.get("changed") else "（此前已处理）"
             await event.respond(f"Approval {approval_id}: {status_text}{changed_text}。当前不会自动下单。")
+            await event.answer(status_text, alert=False)
+
+        @self.client.on(events.CallbackQuery(pattern=r'eo_exit_(approve|reject)_(\d+)'))
+        async def handle_earnings_option_exit_approval(event):
+            if not self.is_info_group(event):
+                await event.answer()
+                return
+            action = event.pattern_match.group(1).decode()
+            approval_id = int(event.pattern_match.group(2).decode())
+            decision = "approved" if action == "approve" else "rejected"
+            actor = str(getattr(event.sender, "id", "")) if getattr(event, "sender", None) else None
+            try:
+                result = record_exit_decision(exit_approval_id=approval_id, decision=decision, actor=actor)
+            except Exception as exc:
+                await event.answer(f"记录失败: {exc}", alert=True)
+                return
+            status_text = "已确认退出" if result["status"] == "approved" else "已拒绝退出"
+            changed_text = "" if result.get("changed") else "（此前已处理）"
+            await event.respond(f"Exit approval {approval_id}: {status_text}{changed_text}。当前不会自动平仓。")
             await event.answer(status_text, alert=False)
 
         @self.client.on(events.NewMessage(pattern=r'^\?(\w+)'))

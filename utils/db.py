@@ -725,6 +725,71 @@ class PaperOptionExitPlan(Base):
         Index('idx_paper_option_exit_plans_status', status),
     )
 
+class PaperOptionExitApproval(Base):
+    __tablename__ = 'paper_option_exit_approvals'
+
+    id = Column(Integer, primary_key=True)
+    exit_plan_id = Column(Integer, ForeignKey('paper_option_exit_plans.id'), nullable=False)
+    order_batch_id = Column(Integer, ForeignKey('paper_option_order_batches.id'), nullable=False)
+    strategy_run_id = Column(Integer, ForeignKey('earnings_strategy_runs.id'), nullable=False)
+    ticker = Column(String(20), nullable=False)
+    action = Column(String(80), nullable=False)
+    status = Column(String(40), nullable=False, default='pending')
+    telegram_chat_id = Column(String(80))
+    telegram_message_id = Column(String(80))
+    requested_payload = Column(JSONB)
+    decided_at = Column(DateTime(timezone=True))
+    decision_payload = Column(JSONB)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+    __table_args__ = (
+        Index('idx_paper_option_exit_approvals_plan', exit_plan_id),
+        Index('idx_paper_option_exit_approvals_batch', order_batch_id),
+        Index('idx_paper_option_exit_approvals_status', status),
+    )
+
+class PaperOptionExitOrderBatch(Base):
+    __tablename__ = 'paper_option_exit_order_batches'
+
+    id = Column(Integer, primary_key=True)
+    exit_approval_id = Column(Integer, ForeignKey('paper_option_exit_approvals.id'), nullable=False)
+    exit_plan_id = Column(Integer, ForeignKey('paper_option_exit_plans.id'), nullable=False)
+    source_order_batch_id = Column(Integer, ForeignKey('paper_option_order_batches.id'), nullable=False)
+    strategy_run_id = Column(Integer, ForeignKey('earnings_strategy_runs.id'), nullable=False)
+    ticker = Column(String(20), nullable=False)
+    status = Column(String(40), nullable=False, default='staged')
+    payload_json = Column(JSONB)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    submitted_at = Column(DateTime(timezone=True))
+
+    __table_args__ = (
+        UniqueConstraint('exit_approval_id', name='uq_paper_option_exit_order_batch_approval'),
+        Index('idx_paper_option_exit_order_batches_source', source_order_batch_id),
+        Index('idx_paper_option_exit_order_batches_status', status),
+    )
+
+class PaperOptionExitOrderBatchLeg(Base):
+    __tablename__ = 'paper_option_exit_order_batch_legs'
+
+    id = Column(Integer, primary_key=True)
+    exit_order_batch_id = Column(Integer, ForeignKey('paper_option_exit_order_batches.id'), nullable=False)
+    source_batch_leg_id = Column(Integer, ForeignKey('paper_option_order_batch_legs.id'), nullable=False)
+    leg_index = Column(Integer, nullable=False)
+    action = Column(String(20), nullable=False)
+    quantity = Column(Integer, nullable=False)
+    broker_code = Column(String(120), nullable=False)
+    suggested_limit_price = Column(Numeric(20, 6))
+    order_type = Column(String(40), nullable=False, default='limit')
+    status = Column(String(40), nullable=False, default='staged')
+    broker_order_id = Column(String(120))
+    payload_json = Column(JSONB)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+    __table_args__ = (
+        Index('idx_paper_option_exit_order_batch_legs_batch', exit_order_batch_id),
+        Index('idx_paper_option_exit_order_batch_legs_status', status),
+    )
+
 engine = create_engine(config.DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
