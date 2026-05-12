@@ -853,6 +853,56 @@ Runtime log:
 earnings_position_monitor.log
 ```
 
+## Exit Order Submission And Monitoring
+
+Actionable exit plans are handled through a separate manual approval and paper
+execution flow:
+
+```text
+earnings_options/exit_workflow.py
+earnings_options/exit_batch_submission.py
+scripts/send_exit_confirmations.py
+scripts/stage_exit_order_batch.py
+scripts/submit_exit_order_batch.py
+scripts/refresh_exit_order_status.py
+scripts/list_exit_order_batches.py
+paper_option_exit_approvals
+paper_option_exit_order_batches
+paper_option_exit_order_batch_legs
+```
+
+The safe sequence is:
+
+```bash
+/opt/miniconda3/bin/python3.13 scripts/send_exit_confirmations.py \
+  --order-batch-id 1
+
+/opt/miniconda3/bin/python3.13 scripts/stage_exit_order_batch.py \
+  --exit-approval-id 1
+
+/opt/miniconda3/bin/python3.13 scripts/submit_exit_order_batch.py \
+  --exit-order-batch-id 1
+
+/opt/miniconda3/bin/python3.13 scripts/submit_exit_order_batch.py \
+  --exit-order-batch-id 1 \
+  --submit
+
+/opt/miniconda3/bin/python3.13 scripts/refresh_exit_order_status.py \
+  --exit-order-batch-id 1 \
+  --notify
+```
+
+The first `submit_exit_order_batch.py` command is a dry run. It prints the
+closing orders but does not place them. Adding `--submit` sends individual
+paper limit orders through Moomoo `TrdEnv.SIMULATE`.
+
+Retry behavior is leg-aware. If a previous submit partially failed, a retry only
+submits legs still in `staged` or `submit_failed` status. Already submitted or
+filled legs are not sent again.
+
+When all exit legs are filled, the exit batch is marked `filled` and the source
+paper option order batch is marked `closed`.
+
 ## Repository Quality Hooks
 
 Git hooks are installed through:

@@ -782,6 +782,10 @@ class PaperOptionExitOrderBatchLeg(Base):
     order_type = Column(String(40), nullable=False, default='limit')
     status = Column(String(40), nullable=False, default='staged')
     broker_order_id = Column(String(120))
+    dealt_qty = Column(Numeric(20, 6))
+    dealt_avg_price = Column(Numeric(20, 6))
+    last_err_msg = Column(Text)
+    last_status_at = Column(DateTime(timezone=True))
     payload_json = Column(JSONB)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
