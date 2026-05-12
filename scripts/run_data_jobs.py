@@ -10,7 +10,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from earnings_options.data_job_worker import run_pending_jobs
-from utils.db import init_db
+from earnings_options.db_migrations import run_migrations
 
 
 def main() -> None:
@@ -21,7 +21,7 @@ def main() -> None:
     args = parser.parse_args()
 
     if args.init_db:
-        init_db()
+        run_migrations()
     results = run_pending_jobs(job_type=args.job_type, limit=args.limit)
     if not results:
         print("No pending jobs.")

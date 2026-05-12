@@ -11,8 +11,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from earnings_options.data_job_worker import run_pending_jobs
 from earnings_options.data_readiness import check_watchlist_readiness
+from earnings_options.db_migrations import run_migrations
 from earnings_options.qc_data_sync import sync_from_quantconnect
-from utils.db import init_db
 
 
 def main() -> None:
@@ -29,7 +29,7 @@ def main() -> None:
     args = parser.parse_args()
 
     if args.init_db:
-        init_db()
+        run_migrations()
 
     if not args.skip_sync:
         sync_result = sync_from_quantconnect(

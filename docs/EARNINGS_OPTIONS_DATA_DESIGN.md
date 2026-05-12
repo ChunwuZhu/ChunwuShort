@@ -977,6 +977,35 @@ The quality check runs `py_compile`, `git diff --check`, and refuses to commit
 local secret/runtime paths such as `.env`, session files, logs, Chrome profile
 state, and `qc/data/`.
 
+## Database Migrations
+
+SQLAlchemy `create_all()` creates missing tables but does not alter existing
+tables. Earnings-options schema changes are therefore tracked in an idempotent
+migration helper:
+
+```text
+earnings_options/db_migrations.py
+scripts/run_db_migrations.py
+```
+
+Run manually:
+
+```bash
+/opt/miniconda3/bin/python3.13 scripts/run_db_migrations.py
+```
+
+Current migrations cover:
+
+```text
+paper_option_order_batch_legs fill/status columns
+paper_option_exit_order_batch_legs fill/status columns
+earnings_data_readiness.news_summary_id
+```
+
+The morning data pipeline, `run_data_jobs.py`, and `check_data_readiness.py`
+call this migration helper when `--init-db` is used. Add new schema drift fixes
+there instead of relying on one-off manual `ALTER TABLE` commands.
+
 ## PostgreSQL vs Parquet
 
 Use PostgreSQL for business state:

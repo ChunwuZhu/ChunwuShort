@@ -11,7 +11,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from earnings_options.data_readiness import check_ticker_readiness, check_watchlist_readiness
-from utils.db import init_db
+from earnings_options.db_migrations import run_migrations
 
 
 def main() -> None:
@@ -23,7 +23,7 @@ def main() -> None:
     args = parser.parse_args()
 
     if args.init_db:
-        init_db()
+        run_migrations()
 
     if args.ticker:
         results = [check_ticker_readiness(args.ticker)]
