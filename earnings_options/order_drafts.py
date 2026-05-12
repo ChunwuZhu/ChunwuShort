@@ -114,8 +114,10 @@ def _drafts_for_strategy(
 ) -> list[PaperOptionOrderDraft]:
     drafts = []
     legs = strategy.get("legs") or []
+    strategy_messages = _strategy_level_messages(strategy)
     for leg_index, leg in enumerate(legs, start=1):
         messages = _validate_leg(leg)
+        messages.extend(strategy_messages)
         action = str(leg.get("action") or "").upper()
         option_type = str(leg.get("option_type") or "").upper()
         expiry = _parse_day(leg.get("expiry"))
@@ -189,6 +191,16 @@ def _validate_leg(leg: dict[str, Any]) -> list[str]:
         messages.append("invalid_quantity")
     if price is None or price <= 0:
         messages.append("invalid_limit_price_hint")
+    return messages
+
+
+def _strategy_level_messages(strategy: dict[str, Any]) -> list[str]:
+    messages = []
+    if strategy.get("paper_trade_ready") is False:
+        messages.append("strategy_not_paper_trade_ready")
+    local_quality = strategy.get("local_quality") or {}
+    for message in local_quality.get("messages") or []:
+        messages.append(f"local_quality:{message}")
     return messages
 
 

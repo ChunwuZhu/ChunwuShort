@@ -67,6 +67,7 @@ def build_option_chain_summary(
         "directional_skew_score": _skew_score(latest),
         "top_volume_contracts": latest.get("top_volume_contracts", []),
         "top_premium_contracts": latest.get("top_premium_contracts", []),
+        "tradable_candidates": latest.get("tradable_candidates", {}),
         "straddle_trend_by_day": [
             {
                 "date": item["trade_date"],
@@ -156,6 +157,7 @@ def _summarize_day(day: pd.DataFrame, ticker: str, report_date: date, spot_price
         "skew_proxy": _skew_proxy(front, spot_price),
         "top_volume_contracts": _top_contracts(contract, "volume"),
         "top_premium_contracts": _top_contracts(contract, "premium"),
+        "tradable_candidates": _tradable_candidates(front, spot_price, implied_move_pct),
     }
 
 
@@ -211,6 +213,46 @@ def _top_contracts(contract: pd.DataFrame, metric: str, n: int = 5) -> list[dict
     for _, row in rows.iterrows():
         out.append({col: _json_value(row[col]) for col in cols})
     return out
+
+
+def _tradable_candidates(front: pd.DataFrame, spot_price: float, implied_move_pct: float | None) -> dict[str, Any]:
+    """Compact candidate list for LLM strike selection.
+
+    The full chain stays in Parquet. This payload gives the model actual listed
+    contracts around ATM and the implied-move band without making the prompt huge.
+    """
+    move = (implied_move_pct or 5.0) / 100.0
+    targets = {
+        "atm": spot_price,
+        "up_half_implied_move": spot_price * (1 + move / 2),
+        "up_implied_move": spot_price * (1 + move),
+        "down_half_implied_move": spot_price * (1 - move / 2),
+        "down_implied_move": spot_price * (1 - move),
+    }
+    return {
+        label: {
+            "call": _candidate_payload(_nearest_option(front, "call", target)),
+            "put": _candidate_payload(_nearest_option(front, "put", target)),
+        }
+        for label, target in targets.items()
+    }
+
+
+def _candidate_payload(row: pd.Series | None) -> dict[str, Any] | None:
+    if row is None:
+        return None
+    return {
+        "symbol": _json_value(row.get("symbol")),
+        "right": _json_value(row.get("right")),
+        "expiry": _json_value(row.get("expiry")),
+        "strike": _json_value(row.get("strike")),
+        "bid": _json_value(row.get("bid_close")),
+        "ask": _json_value(row.get("ask_close")),
+        "mid": _json_value(row.get("mid")),
+        "close": _json_value(row.get("close")),
+        "volume": _json_value(row.get("volume")),
+        "spread_pct": _json_value(row.get("spread_pct")),
+    }
 
 
 def _liquidity_score(summary: dict[str, Any]) -> int:

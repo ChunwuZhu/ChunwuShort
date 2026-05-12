@@ -4,6 +4,7 @@ import re
 from copy import deepcopy
 from typing import Any
 
+from earnings_options.strategy_quality import evaluate_strategy_quality
 from llm.tamu_client import TamuChatClient
 
 logger = logging.getLogger(__name__)
@@ -49,7 +50,7 @@ def analyze_earnings_options_strategy(
 
     content = _chat_completion(messages, client=client, model=model, temperature=temperature, max_tokens=max_tokens)
     try:
-        return _parse_json_response(content)
+        return _with_quality_metadata(payload, _parse_json_response(content))
     except EarningsOptionsStrategyError:
         logger.warning("LLM returned invalid JSON; retrying JSON repair")
 
@@ -64,7 +65,7 @@ def analyze_earnings_options_strategy(
         temperature=temperature,
         max_tokens=max_tokens,
     )
-    return _parse_json_response(repaired)
+    return _with_quality_metadata(payload, _parse_json_response(repaired))
 
 
 def test_tamu_models() -> list[dict[str, Any]]:
@@ -124,6 +125,20 @@ def _parse_json_response(content: str) -> dict[str, Any]:
     return data
 
 
+def _with_quality_metadata(input_payload: dict[str, Any], strategy_json: dict[str, Any]) -> dict[str, Any]:
+    quality = evaluate_strategy_quality(input_data=input_payload, strategy_json=strategy_json)
+    strategy_json.setdefault("metadata", {})
+    strategy_json["metadata"]["local_quality"] = quality
+    warnings = list(strategy_json.get("data_quality_warnings") or [])
+    warnings.extend(quality["messages"])
+    strategy_json["data_quality_warnings"] = sorted(set(str(item) for item in warnings))
+    for item, result in zip(strategy_json.get("strategies") or [], quality["strategy_results"]):
+        item["local_quality"] = result
+        if result["messages"]:
+            item["paper_trade_ready"] = False
+    return strategy_json
+
+
 def _strip_code_fence(content: str) -> str:
     content = content.strip()
     content = re.sub(r"<think>.*?</think>", "", content, flags=re.DOTALL | re.IGNORECASE).strip()
@@ -147,8 +162,20 @@ Strategies may include long calls/puts, debit spreads, calendars, diagonals,
 straddles, strangles, or other defined-risk option combinations.
 
 Use the provided option chain when choosing expiry, strike, quantity, and price
-hints. If the data is insufficient for a paper-trade-ready plan, set
-paper_trade_ready to false and explain what is missing.
+hints. Prefer exact contracts from option_chain_data.tradable_candidates when
+available. If you choose a contract outside those candidates, explicitly explain
+why in main_risks and set paper_trade_ready to false.
+
+Budget and risk rules:
+- Never use more than 95% of the stated budget.
+- Use conservative entry pricing: BUY legs near ask, SELL legs near bid.
+- Avoid contracts with wide spreads unless paper_trade_ready is false.
+- Explain implied-volatility crush risk for every long-premium earnings trade.
+- Any short option leg must be protected by a same-expiry long option leg.
+- The max_loss value must be a dollar amount and must not exceed the strategy budget.
+
+If the data is insufficient for a paper-trade-ready plan, set paper_trade_ready
+to false and explain what is missing.
 
 Required JSON shape:
 {

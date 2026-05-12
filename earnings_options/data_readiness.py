@@ -119,10 +119,10 @@ def check_event_readiness(db, event: QCEarningsCurrentEvent) -> dict[str, Any]:
     option_summary = _latest_option_summary(db, ticker, window_id)
     checks["option_chain_summary"] = _check_result(
         option_summary is not None,
-        "future_required",
+        "required",
         id_=option_summary.id if option_summary else None,
         as_of_date=option_summary.as_of_date.isoformat() if option_summary else None,
-        message="option-chain pricing/liquidity summary; required before option strategy generation",
+        message="option-chain pricing/liquidity summary required before option strategy generation",
     )
     checks["news_summary"] = _check_result(
         False,
@@ -155,6 +155,7 @@ def check_event_readiness(db, event: QCEarningsCurrentEvent) -> dict[str, Any]:
             "technical_summary_id": technical.id if technical else None,
             "benchmark_spy_summary_id": benchmark_ids["SPY"],
             "benchmark_qqq_summary_id": benchmark_ids["QQQ"],
+            "option_chain_summary_id": option_summary.id if option_summary else None,
         },
         "counts": {
             "target_price_manifests": price_manifest_count,

@@ -228,7 +228,7 @@ eligibility_reason = missing_market_cap
 
 ## Data Readiness
 
-Readiness is checked before Gemini analysis.
+Readiness is checked before Gemini or TAMU Claude analysis.
 
 Current implementation:
 
@@ -245,6 +245,7 @@ target fundamentals
 target equity price manifests
 target technical summary
 target historical earnings events
+option chain summary
 ```
 
 Context / optional data:
@@ -253,12 +254,6 @@ Context / optional data:
 SPY technical summary
 QQQ technical summary
 news summary
-```
-
-Future required data:
-
-```text
-option chain summary
 ```
 
 Status values:
@@ -322,6 +317,11 @@ The assembler intentionally does not call Gemini, TAMU, Claude, Moomoo, or any
 trading API. It only reads local PostgreSQL rows and previously computed
 summaries. The model caller should consume this payload and return a separate
 strategy JSON.
+
+`option_chain_data` includes a compact `tradable_candidates` section built from
+actual listed contracts around ATM and the implied-move band. The LLM prompt
+instructs the model to prefer those contracts, because the full option chain
+stays in local Parquet files and should not be sent wholesale to the model.
 
 ## Gemini Strategy Analysis
 
@@ -423,6 +423,50 @@ lower value is requested, because TAMU's Bedrock Claude route rejects other
 temperatures when extended thinking is active. Very small `max_tokens` values
 can also fail because they must exceed the hidden thinking budget, so the TAMU
 strategy script uses larger token limits.
+
+## Strategy Quality Validation
+
+LLM output is checked locally before order drafts are trusted.
+
+Current implementation:
+
+```text
+earnings_options/strategy_quality.py
+scripts/validate_strategy_json.py
+```
+
+The TAMU Claude strategy caller automatically attaches this validation under:
+
+```text
+metadata.local_quality
+strategies[].local_quality
+data_quality_warnings
+```
+
+The local validator checks:
+
+```text
+exactly 3 strategies
+budget <= 95% of user budget
+max_loss <= allowed budget
+valid action/type/expiry/strike/quantity/price
+expiry not before earnings date
+short legs protected by same-expiry long legs
+option liquidity summary thresholds
+whether selected contracts are in compact option candidates
+```
+
+Run manually:
+
+```bash
+/opt/miniconda3/bin/python3.13 scripts/validate_strategy_json.py \
+  --input /tmp/acm_strategy_input.json \
+  --strategy /tmp/acm_tamu_claude_strategy.json
+```
+
+If local quality finds warnings, the strategy is marked not paper-trade-ready.
+The order-draft layer carries those warnings into draft validation so the
+broker-facing workflow requires review instead of treating the strategy as ready.
 
 ## Paper Order Drafts
 
