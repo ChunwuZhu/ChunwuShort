@@ -1335,9 +1335,21 @@ ranked key articles, not every raw article.
 Current implementation:
 
 ```text
+qc/news_downloader.py
 earnings_options/news_summary.py
+scripts/download_qc_news.py
 scripts/build_news_summary.py
 earnings_news_summaries
+```
+
+Download QC news to local CSV:
+
+```bash
+/opt/miniconda3/bin/python3.13 scripts/download_qc_news.py \
+  --ticker AAPL \
+  --start 2026-05-01 \
+  --end 2026-05-08 \
+  --provider tiingo
 ```
 
 Build a summary from a QuantConnect news CSV:
@@ -1353,9 +1365,20 @@ Build a summary from a QuantConnect news CSV:
 
 The first version is deterministic and heuristic-based. It classifies rows into
 `company_news`, `industry_news`, and `market_news`, then stores a compact JSON
-summary for the LLM payload. Automatic QC news downloading is still kept behind
-the existing smoke-test project; data jobs for news require explicit
-`params.csv_paths` until that downloader is promoted.
+summary for the LLM payload.
+
+News data jobs can now either consume explicit `params.csv_paths` or run the QC
+news downloader automatically. Default job window is current earnings date
+T-14 to T+1 with Tiingo:
+
+```json
+{
+  "report_date": "2026-05-11",
+  "provider": "tiingo"
+}
+```
+
+If `csv_paths` is present, the job skips QC and uses the local files directly.
 
 ## Historical Option Chain
 

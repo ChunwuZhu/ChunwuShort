@@ -15,6 +15,7 @@ from earnings_options.news_summary import build_news_summary_from_csvs, upsert_n
 from earnings_options.sec_earnings import enrich_earnings_anchor, parse_acceptance_datetime
 from qc.equity_price_downloader import download_equity_prices
 from qc.historical_earnings import download_historical_earnings
+from qc.news_downloader import download_news
 from qc.option_chain_downloader import download_option_chain
 from utils.db import (
     DataJob,
@@ -230,25 +231,38 @@ def _run_historical_option_chain(db, job: DataJob, ticker: str) -> dict[str, Any
 def _run_historical_news(db, job: DataJob, ticker: str) -> dict[str, Any]:
     params = job.params or {}
     report_date = _parse_day(params.get("report_date"))
+    start = _parse_day(params.get("start_date")) if params.get("start_date") else report_date - timedelta(days=14)
+    end = _parse_day(params.get("end_date")) if params.get("end_date") else report_date + timedelta(days=1)
+    provider = params.get("provider") or "tiingo"
     paths = params.get("csv_paths") or params.get("paths") or []
     if isinstance(paths, str):
         paths = [paths]
     if not paths:
-        raise ValueError(
-            f"{job.job_type} requires params.csv_paths until QC news downloader is promoted from smoke test"
+        download_result = download_news(
+            ticker=ticker,
+            start=start,
+            end=end,
+            provider=provider,
+            save_outputs=True,
         )
+        if not download_result.get("path"):
+            raise ValueError(f"{job.job_type} QC news download did not produce a CSV path")
+        paths = [download_result["path"]]
     summary = build_news_summary_from_csvs(
         ticker=ticker,
         report_date=report_date,
         paths=paths,
         company_name=params.get("company_name"),
-        provider=params.get("provider"),
+        provider=provider,
     )
     summary_id = upsert_news_summary(summary)
     return {
         "ticker": ticker,
         "report_date": report_date.isoformat(),
         "job_type": job.job_type,
+        "provider": provider,
+        "start_date": start.isoformat(),
+        "end_date": end.isoformat(),
         "paths": [str(path) for path in paths],
         "article_count": summary["overall"]["article_count"],
         "news_summary_id": summary_id,
