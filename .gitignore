@@ -6,3 +6,5 @@ __pycache__/
 *.pyc
 .DS_Store
 fintel_profile/
+qc/data/
+qc/.last_*_bt_id

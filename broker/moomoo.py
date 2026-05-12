@@ -116,3 +116,43 @@ class MoomooClient:
             "rows": len(data),
             "columns": list(data.columns),
         }
+
+    def resolve_us_option_contract(self, symbol: str, expiry: str, strike: float, option_type: str):
+        """Resolve a US option contract through Moomoo's option chain API."""
+        code = symbol.upper()
+        if not code.startswith("US."):
+            code = f"US.{code}"
+        opt_type = str(option_type).upper()
+        if opt_type not in {"CALL", "PUT"}:
+            raise MoomooConnectionError(f"unsupported option_type: {option_type}")
+
+        quote_ctx = self.quote_context()
+        futu_option_type = ft.OptionType.CALL if opt_type == "CALL" else ft.OptionType.PUT
+        ret, data = quote_ctx.get_option_chain(
+            code,
+            start=expiry,
+            end=expiry,
+            option_type=futu_option_type,
+        )
+        if ret != ft.RET_OK:
+            raise MoomooConnectionError(f"get_option_chain failed: {data}")
+        if data.empty:
+            return None
+
+        strike_float = float(strike)
+        matches = data[
+            (data["option_type"].astype(str).str.upper() == opt_type)
+            & (data["strike_time"].astype(str) == expiry)
+            & ((data["strike_price"].astype(float) - strike_float).abs() < 0.0001)
+        ]
+        if matches.empty:
+            return None
+        return matches.iloc[0].to_dict()
+
+    def market_snapshot(self, codes: list[str]):
+        """Return market snapshots for stock or option codes."""
+        quote_ctx = self.quote_context()
+        ret, data = quote_ctx.get_market_snapshot(codes)
+        if ret != ft.RET_OK:
+            raise MoomooConnectionError(f"get_market_snapshot failed: {data}")
+        return data

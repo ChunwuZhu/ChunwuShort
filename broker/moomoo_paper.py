@@ -93,6 +93,24 @@ class MoomooPaperTrader:
             fill_outside_rth=fill_outside_rth,
         )
 
+    def sell_limit(self, symbol: str, qty: int | float, price: float, fill_outside_rth=False) -> PaperOrderResult:
+        return self._place_stock_order(
+            symbol=symbol,
+            qty=qty,
+            side=ft.TrdSide.SELL,
+            order_type=ft.OrderType.NORMAL,
+            price=price,
+            fill_outside_rth=fill_outside_rth,
+        )
+
+    def limit_order(self, symbol: str, side: str, qty: int | float, price: float, fill_outside_rth=False) -> PaperOrderResult:
+        side_upper = str(side).upper()
+        if side_upper == "BUY":
+            return self.buy_limit(symbol, qty=qty, price=price, fill_outside_rth=fill_outside_rth)
+        if side_upper == "SELL":
+            return self.sell_limit(symbol, qty=qty, price=price, fill_outside_rth=fill_outside_rth)
+        raise ValueError(f"unsupported side: {side}")
+
     def wait_for_order(self, order_id: str, timeout_sec=10, poll_sec=1):
         deadline = time.monotonic() + timeout_sec
         latest = None

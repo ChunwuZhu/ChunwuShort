@@ -8,9 +8,10 @@ from llm.tamu_client import TamuChatClient
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_TIMEOUT_SEC = 90
+DEFAULT_TIMEOUT_SEC = 120
 DEFAULT_TEMPERATURE = 0.2
-DEFAULT_MAX_TOKENS = 4500
+DEFAULT_MAX_TOKENS = 8192
+DEFAULT_MODEL = "protected.Claude Sonnet 4.6"
 
 REQUIRED_INPUT_FIELDS = (
     "ticker",
@@ -27,7 +28,14 @@ class EarningsOptionsStrategyError(RuntimeError):
     pass
 
 
-def analyze_earnings_options_strategy(input_data: dict[str, Any]) -> dict[str, Any]:
+def analyze_earnings_options_strategy(
+    input_data: dict[str, Any],
+    *,
+    client: TamuChatClient | None = None,
+    model: str | None = DEFAULT_MODEL,
+    temperature: float = DEFAULT_TEMPERATURE,
+    max_tokens: int = DEFAULT_MAX_TOKENS,
+) -> dict[str, Any]:
     """Generate paper-trade-ready earnings option strategy ideas.
 
     The function only calls the LLM and returns structured analysis. It does not
@@ -39,7 +47,7 @@ def analyze_earnings_options_strategy(input_data: dict[str, Any]) -> dict[str, A
         {"role": "user", "content": _user_prompt(payload)},
     ]
 
-    content = _chat_completion(messages)
+    content = _chat_completion(messages, client=client, model=model, temperature=temperature, max_tokens=max_tokens)
     try:
         return _parse_json_response(content)
     except EarningsOptionsStrategyError:
@@ -49,7 +57,13 @@ def analyze_earnings_options_strategy(input_data: dict[str, Any]) -> dict[str, A
         {"role": "system", "content": _json_repair_prompt()},
         {"role": "user", "content": content},
     ]
-    repaired = _chat_completion(repair_messages)
+    repaired = _chat_completion(
+        repair_messages,
+        client=client,
+        model=model,
+        temperature=temperature,
+        max_tokens=max_tokens,
+    )
     return _parse_json_response(repaired)
 
 
@@ -75,12 +89,14 @@ def _prepare_input(input_data: dict[str, Any]) -> dict[str, Any]:
 def _chat_completion(
     messages: list[dict[str, str]],
     *,
+    client: TamuChatClient | None = None,
     model: str | None = None,
     max_tokens: int = DEFAULT_MAX_TOKENS,
     temperature: float = DEFAULT_TEMPERATURE,
 ) -> str:
     try:
-        return TamuChatClient(timeout_sec=DEFAULT_TIMEOUT_SEC).complete(
+        chat_client = client or TamuChatClient(timeout_sec=DEFAULT_TIMEOUT_SEC)
+        return chat_client.complete(
             messages,
             model=model,
             max_tokens=max_tokens,
@@ -110,6 +126,7 @@ def _parse_json_response(content: str) -> dict[str, Any]:
 
 def _strip_code_fence(content: str) -> str:
     content = content.strip()
+    content = re.sub(r"<think>.*?</think>", "", content, flags=re.DOTALL | re.IGNORECASE).strip()
     if content.startswith("```"):
         content = re.sub(r"^```(?:json)?\s*", "", content, flags=re.IGNORECASE)
         content = re.sub(r"\s*```$", "", content)

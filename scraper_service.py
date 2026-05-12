@@ -7,10 +7,10 @@ import html
 import requests
 from datetime import datetime
 from pytz import timezone
-from bot.earnings import google_finance_url
 from scraper.fintel import FintelScraper
 from utils.config import config
 from utils.db import SessionLocal, ShortSqueeze, GammaSqueeze, FintelSout, OptionFlow
+from utils.links import google_finance_url
 from sqlalchemy.exc import IntegrityError
 
 # 配置独立日志

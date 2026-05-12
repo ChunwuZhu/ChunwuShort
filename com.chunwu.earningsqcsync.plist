@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.chunwu.earningsqcsync</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/opt/miniconda3/bin/python3.13</string>
+        <string>/Users/chunwu/Desktop/A02Info/scripts/run_morning_data_pipeline.py</string>
+        <string>--init-db</string>
+        <string>--equity-job-limit</string>
+        <string>20</string>
+    </array>
+    <key>WorkingDirectory</key>
+    <string>/Users/chunwu/Desktop/A02Info</string>
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Hour</key>
+        <integer>7</integer>
+        <key>Minute</key>
+        <integer>15</integer>
+    </dict>
+    <key>StandardOutPath</key>
+    <string>/Users/chunwu/Desktop/A02Info/earnings_morning_pipeline.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/chunwu/Desktop/A02Info/earnings_morning_pipeline.log</string>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/opt/miniconda3/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+        <key>PYTHONUNBUFFERED</key>
+        <string>1</string>
+    </dict>
+</dict>
+</plist>

@@ -13,3 +13,4 @@ apscheduler
 pytz
 futu-api
 tamu-chat
+google-genai

@@ -1,0 +1,9 @@
+{
+    "algorithm-language": "Python",
+    "parameters": {},
+    "description": "QuantConnect news dataset access smoke test",
+    "cloud-id": 31401250,
+    "organization-id": "9b6c5ad43b33eb3c483b9d3b99266b23",
+    "python-venv": 1,
+    "local-id": 198767297
+}

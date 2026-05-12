@@ -5,16 +5,10 @@ from datetime import datetime, timedelta
 from telethon import TelegramClient, events, Button
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from pytz import timezone
-from bot.earnings import (
-    format_earnings_message,
-    google_finance_url,
-    next_trading_day,
-    split_message,
-    today_ct,
-)
-from bot.earnings_cache import ensure_earnings_table, get_or_fetch_earnings, refresh_earnings_window
 from utils.config import config
 from utils.db import SessionLocal, ShortSqueeze, GammaSqueeze, FintelSout, OptionFlow
+from utils.links import google_finance_url
+from earnings_options.manual_confirmation import record_manual_decision
 from sqlalchemy import func
 
 logger = logging.getLogger(__name__)
@@ -46,7 +40,6 @@ class ShortBot:
         self.scheduler = AsyncIOScheduler()
         self.tz_ct = timezone('US/Central')
         self.tz_et = timezone('US/Eastern')
-        self.earnings_lock = None
 
     def is_info_group(self, event):
         return bool(config.TARGET_GROUP_ID and event.chat_id == config.TARGET_GROUP_ID)
@@ -178,33 +171,8 @@ class ShortBot:
             "Gamma: /topg /changeg\n"
             "Flow: /topo\n"
             "Live: /bc /bp /bc3m /bp3m /bc3m5s /bp3m5s\n"
-            "Earnings: /Tday /Nday\n"
             "Quick: `?TSLA`"
         )
-
-    async def push_earnings(self, respond, target):
-        if self.earnings_lock.locked():
-            await respond("⏳ 财报查询已在进行中，请稍候。")
-            return
-
-        async with self.earnings_lock:
-            logger.info("[EARNINGS] loading %s", target)
-            try:
-                data, from_cache = await get_or_fetch_earnings(target)
-                message = format_earnings_message(target, data)
-                for chunk in split_message(message):
-                    await respond(chunk, parse_mode='html', link_preview=False)
-                logger.info("[EARNINGS] pushed %d companies for %s cache=%s", len(data), target, from_cache)
-            except Exception as exc:
-                logger.error("[EARNINGS] push failed: %s", exc)
-                await respond(f"❌ 财报查询失败: {exc}")
-
-    async def refresh_earnings_cache_job(self):
-        try:
-            total = await refresh_earnings_window(days=14)
-            logger.info("[EARNINGS] scheduled cache refresh completed: %d events", total)
-        except Exception as exc:
-            logger.error("[EARNINGS] scheduled cache refresh failed: %s", exc)
 
     async def send_scheduled_report(self):
         df = self.get_latest_data(ShortSqueeze)
@@ -217,25 +185,10 @@ class ShortBot:
             )
 
     async def start(self):
-        ensure_earnings_table()
         await self.client.start(bot_token=config.TELEGRAM_BOT_TOKEN)
-        self.earnings_lock = self.earnings_lock or asyncio.Lock()
         logger.info("🤖 Bot 已启动")
 
-        if config.TARGET_GROUP_ID:
-            self.scheduler.add_job(
-                self.refresh_earnings_cache_job,
-                "cron",
-                day_of_week="fri",
-                hour=15,
-                minute=0,
-                timezone=self.tz_ct,
-                id="earnings_cache_friday",
-                replace_existing=True,
-            )
-            self.scheduler.start()
-            logger.info("⏰ 定时任务已启用: Earnings cache Fri 15:00 CT")
-        else:
+        if not config.TARGET_GROUP_ID:
             logger.warning("TARGET_GROUP_ID 未配置，定时推送未启用。")
 
         @self.client.on(events.NewMessage(pattern=r'(?i)^p$'))
@@ -280,14 +233,6 @@ class ShortBot:
             ]
             await event.respond(self.format_compact_message(df, mode=f'sout_{base_cmd}'), buttons=buttons, link_preview=False)
 
-        @self.client.on(events.NewMessage(pattern=r'(?i)^/(tday|nday)$'))
-        async def handle_earnings(event):
-            if not self.is_info_group(event):
-                return
-            cmd = event.pattern_match.group(1).lower()
-            target = today_ct() if cmd == 'tday' else next_trading_day()
-            await self.push_earnings(event.respond, target)
-
         @self.client.on(events.CallbackQuery(pattern=r'menu'))
         async def handle_menu_callback(event):
             if not self.is_info_group(event):
@@ -327,6 +272,25 @@ class ShortBot:
             buttons.append([Button.inline("📋 菜单", b"menu")])
             await event.edit(self.format_compact_message(df, mode=f'sout_{base_cmd}'), buttons=buttons, link_preview=False)
             await event.answer()
+
+        @self.client.on(events.CallbackQuery(pattern=r'eo_(approve|reject)_(\d+)'))
+        async def handle_earnings_option_approval(event):
+            if not self.is_info_group(event):
+                await event.answer()
+                return
+            action = event.pattern_match.group(1).decode()
+            approval_id = int(event.pattern_match.group(2).decode())
+            decision = "approved" if action == "approve" else "rejected"
+            actor = str(getattr(event.sender, "id", "")) if getattr(event, "sender", None) else None
+            try:
+                result = record_manual_decision(approval_id=approval_id, decision=decision, actor=actor)
+            except Exception as exc:
+                await event.answer(f"记录失败: {exc}", alert=True)
+                return
+            status_text = "已确认" if result["status"] == "approved" else "已拒绝"
+            changed_text = "" if result.get("changed") else "（此前已处理）"
+            await event.respond(f"Approval {approval_id}: {status_text}{changed_text}。当前不会自动下单。")
+            await event.answer(status_text, alert=False)
 
         @self.client.on(events.NewMessage(pattern=r'^\?(\w+)'))
         async def handle_quick_link(event):

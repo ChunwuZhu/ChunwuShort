@@ -44,6 +44,15 @@ class Config:
     TAMU_ALT_BASE_URL = os.getenv('TAMU_ALT_BASE_URL', 'https://tti-api.tamus.ai')
     TAMU_DAILY_CREDIT_USD = float(os.getenv('TAMU_DAILY_CREDIT_USD', '0') or 0)
     TAMU_ALT_DAILY_CREDIT_USD = float(os.getenv('TAMU_ALT_DAILY_CREDIT_USD', '0') or 0)
+
+    # Gemini direct API
+    GEMINI_API_KEY = (
+        os.getenv('GEMINI_API_KEY')
+        or os.getenv('GOOGLE_API_KEY')
+        or os.getenv('GOOGLE_GENAI_API_KEY')
+        or ''
+    )
+    GEMINI_MODEL = os.getenv('GEMINI_MODEL', 'gemini-2.5-pro')
     
     # Paths
     BASE_DIR = BASE_DIR
