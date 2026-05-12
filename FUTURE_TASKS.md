@@ -76,43 +76,6 @@ Open design questions:
 - How to size a copied trade under a small budget without changing the risk profile too much.
 - Which broker API to use and what approval workflow should be required before live execution.
 
-## Moomoo and IBKR API Integration
-
-Status: planned, not started.
-
-Goal: use moomoo and IBKR APIs together, with IBKR used to supplement market data and broker data that may be missing, delayed, or less reliable from moomoo.
-
-High-level idea:
-
-- Keep moomoo as one primary broker or market-data interface where it is convenient.
-- Add IBKR API as a complementary data source for option chains, Greeks, implied volatility, quotes, positions, orders, executions, account data, and historical bars.
-- Build a normalized data layer so the rest of the project can request market data without caring whether the source is moomoo, IBKR, or a fallback.
-- Compare data from both sources for key fields such as bid/ask, volume, open interest, implied volatility, and contract metadata.
-- Prefer IBKR as a validation or backup source before generating or executing option strategies.
-
-Expected reuse from this project:
-
-- Database configuration and SQLAlchemy patterns from `utils/db.py`.
-- Telegram command and alert flow from `bot/handlers.py`.
-- Future trading bot modules that need option chains, quotes, positions, and order status.
-- Existing scraper and Fintel signal modules as upstream signal sources.
-
-Initial implementation notes:
-
-- Start with read-only market data and account data integration.
-- Add source labels and timestamps to every normalized quote or contract record.
-- Cache slow or rate-limited data where appropriate.
-- Keep broker credentials out of git and load them through environment-backed config.
-- Add paper-trading or dry-run order routing before any real order placement.
-
-Open design questions:
-
-- Which API should be authoritative for option chain metadata and Greeks.
-- Whether moomoo or IBKR should handle actual order execution.
-- How to reconcile differences in symbol format, contract identifiers, exchange routing, and time zones.
-- How to detect stale quotes or mismatched bid/ask data between the two APIs.
-- What fallback behavior should be used if one API is unavailable during market hours.
-
 ## OpenBurst Options Bot
 
 Status: planned, not started.
@@ -130,7 +93,7 @@ High-level idea:
 Expected reuse from this project:
 
 - Moomoo paper-trading module from `broker/moomoo_paper.py`.
-- Future moomoo and IBKR normalized market-data layer.
+- Existing and future market-data helpers for option chains, quotes, and position state.
 - Telegram command and notification patterns from `bot/handlers.py`.
 - Existing Fintel and earnings signal modules if a strategy uses unusual trades, option flow, or earnings context.
 
@@ -148,40 +111,3 @@ Open design questions:
 - Whether hedging should be stock-based, option-based, or portfolio-level.
 - Which data provider should supply real-time Greeks, IV surface, and option chain snapshots.
 - How much human approval should be required before execution.
-
-## QQQI Dollar-Cost Averaging Quant Strategy
-
-Status: planned, not started.
-
-Goal: design and backtest a quantitative dollar-cost averaging strategy for QQQI, then decide whether it is suitable for paper trading and later automation.
-
-High-level idea:
-
-- Research QQQI's product behavior, distribution mechanics, underlying exposure, liquidity, drawdown profile, and tracking behavior.
-- Compare simple fixed-schedule DCA against rule-based variants such as volatility-adjusted buying, drawdown-triggered buying, trend-filtered buying, and cash-reserve rebalancing.
-- Include dividend or distribution assumptions in backtests where data is available.
-- Evaluate performance across different budgets, contribution schedules, and risk controls.
-- Use paper trading first before any real automated recurring purchase.
-
-Expected reuse from this project:
-
-- Moomoo paper-trading module from `broker/moomoo_paper.py`.
-- Future moomoo and IBKR market-data integration for prices, dividends, and order execution.
-- Telegram notifications for scheduled buys, skipped buys, portfolio status, and backtest summaries.
-- Database patterns from `utils/db.py` for storing strategy runs, signals, trades, and performance snapshots.
-
-Initial implementation notes:
-
-- Start with a research notebook or script that downloads historical QQQI prices and distributions.
-- Build a backtest with configurable starting capital, recurring contribution amount, buy frequency, and risk rules.
-- Compare against benchmarks such as lump-sum buying, plain QQQ, and simple fixed-amount DCA.
-- Track total return, max drawdown, volatility, cash drag, distribution reinvestment effect, and tax-sensitive assumptions if needed.
-- Keep execution disabled until the backtest and paper-trading behavior are reviewed.
-
-Open design questions:
-
-- Which data source has reliable adjusted QQQI prices and distribution history.
-- Whether distributions should be reinvested automatically or treated as cash income.
-- What schedule to test: daily, weekly, biweekly, monthly, or drawdown-based.
-- Whether the strategy should buy only QQQI or pair it with cash, QQQ, TQQQ, options, or hedges.
-- What max position size, stop rules, or risk limits should apply before automation.
