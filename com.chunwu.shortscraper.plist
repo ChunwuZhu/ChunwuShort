@@ -4,6 +4,8 @@
 <dict>
     <key>Label</key>
     <string>com.chunwu.shortscraper</string>
+    <key>Disabled</key>
+    <true/>
     <key>ProgramArguments</key>
     <array>
         <string>/opt/miniconda3/bin/python3.13</string>

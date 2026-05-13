@@ -4,6 +4,8 @@
 <dict>
     <key>Label</key>
     <string>com.chunwu.earningsqcsync</string>
+    <key>Disabled</key>
+    <true/>
     <key>ProgramArguments</key>
     <array>
         <string>/opt/miniconda3/bin/python3.13</string>
@@ -14,6 +16,10 @@
     </array>
     <key>WorkingDirectory</key>
     <string>/Users/chunwu/Desktop/A02Info</string>
+    <key>RunAtLoad</key>
+    <false/>
+    <key>KeepAlive</key>
+    <false/>
     <key>StartCalendarInterval</key>
     <dict>
         <key>Hour</key>

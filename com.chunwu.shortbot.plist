@@ -4,6 +4,8 @@
 <dict>
     <key>Label</key>
     <string>com.chunwu.shortbot</string>
+    <key>Disabled</key>
+    <true/>
     <key>ProgramArguments</key>
     <array>
         <string>/opt/miniconda3/bin/python3.13</string>
@@ -12,9 +14,9 @@
     <key>WorkingDirectory</key>
     <string>/Users/chunwu/Desktop/A02Info</string>
     <key>RunAtLoad</key>
-    <true/>
+    <false/>
     <key>KeepAlive</key>
-    <true/>
+    <false/>
     <key>EnvironmentVariables</key>
     <dict>
         <key>PATH</key>
